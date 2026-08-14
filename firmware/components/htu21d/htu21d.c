@@ -284,7 +284,6 @@ esp_err_t htu21d_read(const htu21d_handle_t handle, float *rh_out, float *temp_o
     *rh_out = htu21d_raw_to_rh(raw_rh);
     *temp_out = htu21d_raw_to_temp(raw_temp);
 
-    ESP_LOGI(TAG, "RH: %.1f%%, Temp: %.2f°C", *rh_out, *temp_out);
 
     return ESP_OK;
 }

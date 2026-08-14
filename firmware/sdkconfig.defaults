@@ -1,0 +1,8 @@
+# Default SDK configuration for your project
+# Set your target board, features, etc.
+
+# Example configurations - adjust for your target:
+# CONFIG_IDF_TARGET="esp32"
+# CONFIG_IDF_TARGET="esp32s3"
+
+# Add your custom configurations here

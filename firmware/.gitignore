@@ -1,0 +1,40 @@
+# ESP-IDF build output and generated files
+build/
+bootloader-prefix/
+managed_components/
+dependencies.lock
+*.bin
+*.elf
+*.map
+*.hex
+*.uf2
+*.log
+
+# Local SDK configuration (keep sdkconfig.defaults tracked, not the generated local one)
+sdkconfig
+sdkconfig.old
+
+# Secrets and local credentials - do not commit
+config/wifi_config.h
+config/*.local.h
+config/*.secret.h
+*.pem
+*.crt
+*.key
+*.p12
+*.jks
+.env
+.env.*
+
+# Editor / OS junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Optional local troubleshooting artifacts
+core
+core.*

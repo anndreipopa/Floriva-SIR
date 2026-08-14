@@ -46,3 +46,5 @@ esp_err_t htu21d_read(htu21d_handle_t handle, float *rh_out, float *temp_out);
 
 //cleanup
 esp_err_t htu21d_deinit(htu21d_handle_t handle);
+
+#endif

@@ -5,19 +5,31 @@
 #include "esp_wifi.h"
 #include "esp_netif.h"
 #include "esp_event.h"
+#include "nvs_flash.h"
 #include "wifi.h"
-#include "config/wifi_config.h"
+#include "../config/wifi_config.h"
 
 static const char *TAG = "MAIN APP";
 
 void app_main(void){
 
+    // Initialize NVS
+     esp_err_t ret = nvs_flash_init();
+
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+        ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+
+    ESP_ERROR_CHECK(ret);
+
     //create I2C master bus
     i2c_master_bus_config_t bus_cfg = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .i2c_port = I2C_NUM_0,
-        .scl_io_num = 22,
-        .sda_io_num = 21,
+        .scl_io_num = 21,
+        .sda_io_num = 22,
         .glitch_ignore_cnt = 7,
         .flags.enable_internal_pullup = true,
     };
@@ -42,13 +54,16 @@ void app_main(void){
     htu21d_handle_t sensor_htu;
     ESP_ERROR_CHECK(htu21d_init(&htu_cfg, &sensor_htu));
 
+    //initialize WiFi
+    ESP_ERROR_CHECK(wifi_init(WIFI_SSID, WIFI_PASS));
+
     //Read loop
-    //Read 10 times, add values into float for averaging
+    while(1){
     float lux_sum = 0.0f;
     float rh_sum = 0.0f;
     float temp_sum = 0.0f;
 
-    for(int i=0; i<10; i++){
+    for(int i=0; i<3; i++){
         float lux;
         if(bh1750_read_lux(sensor_bh, &lux) == ESP_OK){
             lux_sum += lux;
@@ -60,24 +75,18 @@ void app_main(void){
             temp_sum += temp;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(2000)); // time between reads, 2000 = 2 sec
+        vTaskDelay(pdMS_TO_TICKS(1000)); // time between reads, 2000 = 2 sec
     }
 
-    //average the 10 readings for the truest value
-    float lux_avg = lux_sum / 10.0f;
-    float rh_avg = rh_sum / 10.0f;
-    float temp_avg = temp_sum / 10.0f;
+    //average the 3 readings for the truest value
+    float lux_avg = lux_sum / 3.0f;
+    float rh_avg = rh_sum / 3.0f;
+    float temp_avg = temp_sum / 3.0f;
 
     ESP_LOGI(TAG, "LUX: %.1f", lux_avg);
     ESP_LOGI(TAG, "RH: %.1f%%, TEMP: %.2f°C", rh_avg, temp_avg);
-
-    //Cleanup
-    bh1750_deinit(sensor_bh);
-    htu21d_deinit(sensor_htu);
-    i2c_master_bus_delete(bus_handle);
-
     ESP_LOGI(TAG, "Read Complete");
 
-    wifi_init(WIFI_SSID, WIFI_PASS);
-
+    vTaskDelay(pdMS_TO_TICKS(177000));
+    }
 }
