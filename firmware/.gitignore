@@ -16,6 +16,7 @@ sdkconfig.old
 
 # Secrets and local credentials - do not commit
 config/wifi_config.h
+config/mqtt_config.h
 config/*.local.h
 config/*.secret.h
 *.pem

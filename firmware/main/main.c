@@ -1,6 +1,7 @@
 #include "driver/i2c_master.h"
 #include "bh1750.h"
 #include "htu21d.h"
+#include "mqtt.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "esp_netif.h"
@@ -57,6 +58,9 @@ void app_main(void){
     //initialize WiFi
     ESP_ERROR_CHECK(wifi_init(WIFI_SSID, WIFI_PASS));
 
+    //initialize MQTT connection
+    ESP_ERROR_CHECK(app_mqtt_init());
+
     //Read loop
     while(1){
     float lux_sum = 0.0f;
@@ -81,11 +85,14 @@ void app_main(void){
     //average the 3 readings for the truest value
     float lux_avg = lux_sum / 3.0f;
     float rh_avg = rh_sum / 3.0f;
-    float temp_avg = temp_sum / 3.0f;
+    float temp_avg = (temp_sum / 3.0f) - 0.7f;
 
     ESP_LOGI(TAG, "LUX: %.1f", lux_avg);
     ESP_LOGI(TAG, "RH: %.1f%%, TEMP: %.2f°C", rh_avg, temp_avg);
     ESP_LOGI(TAG, "Read Complete");
+
+    //publish payload to MQTT topic
+    app_mqtt_publish_sensor_data(temp_avg, rh_avg, lux_avg);
 
     vTaskDelay(pdMS_TO_TICKS(177000));
     }
