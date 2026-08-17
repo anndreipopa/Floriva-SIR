@@ -85,7 +85,7 @@ void app_main(void){
     //average the 3 readings for the truest value
     float lux_avg = lux_sum / 3.0f;
     float rh_avg = rh_sum / 3.0f;
-    float temp_avg = (temp_sum / 3.0f) - 0.7f;
+    float temp_avg = (temp_sum / 3.0f) - 0.7f; // -0.7f is subtracted from the reading for calibration.
 
     ESP_LOGI(TAG, "LUX: %.1f", lux_avg);
     ESP_LOGI(TAG, "RH: %.1f%%, TEMP: %.2f°C", rh_avg, temp_avg);
@@ -94,6 +94,6 @@ void app_main(void){
     //publish payload to MQTT topic
     app_mqtt_publish_sensor_data(temp_avg, rh_avg, lux_avg);
 
-    vTaskDelay(pdMS_TO_TICKS(177000));
+    vTaskDelay(pdMS_TO_TICKS(177000)); //wait 3 minutes for another read -> cools down sensor for an accurate reading.
     }
 }

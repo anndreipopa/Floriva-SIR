@@ -1,8 +1,33 @@
+using Licenta.API.Mqtt;
+using Licenta.API.Services;
+DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
+
+var mqttOptions = new MqttOptions
+{
+    Host = builder.Configuration["MQTT_HOST"] ?? "",
+    Port = int.Parse(builder.Configuration["MQTT_PORT"] ?? "8883"),
+    Username = builder.Configuration["MQTT_USERNAME"] ?? "",
+    Password = builder.Configuration["MQTT_PASSWORD"] ?? "",
+    Topic = builder.Configuration["MQTT_TOPIC"] ?? "",
+    UseTls = bool.Parse(builder.Configuration["MQTT_USE_TLS"] ?? "true")
+};
+
+if (string.IsNullOrWhiteSpace(mqttOptions.Host) ||
+    string.IsNullOrWhiteSpace(mqttOptions.Username) ||
+    string.IsNullOrWhiteSpace(mqttOptions.Password) ||
+    string.IsNullOrWhiteSpace(mqttOptions.Topic))
+{
+    throw new InvalidOperationException("MQTT configuration is incomplete.");
+}
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddSingleton(mqttOptions);
+builder.Services.AddSingleton<SensorReadingStore>();
+builder.Services.AddHostedService<MqttSubscriberService>();
 
 var app = builder.Build();
 
