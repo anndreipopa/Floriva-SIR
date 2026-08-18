@@ -1,0 +1,17 @@
+C:\Endava\EndevLocal\Licenta\publish\Licenta.API.exe
+C:\Endava\EndevLocal\Licenta\publish\appsettings.Development.json
+C:\Endava\EndevLocal\Licenta\publish\appsettings.json
+C:\Endava\EndevLocal\Licenta\publish\Licenta.API.dll
+C:\Endava\EndevLocal\Licenta\publish\Licenta.API.runtimeconfig.json
+C:\Endava\EndevLocal\Licenta\publish\Licenta.API.pdb
+C:\Endava\EndevLocal\Licenta\publish\DotNetEnv.dll
+C:\Endava\EndevLocal\Licenta\publish\Microsoft.AspNetCore.OpenApi.dll
+C:\Endava\EndevLocal\Licenta\publish\Microsoft.EntityFrameworkCore.dll
+C:\Endava\EndevLocal\Licenta\publish\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Endava\EndevLocal\Licenta\publish\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Endava\EndevLocal\Licenta\publish\Microsoft.OpenApi.dll
+C:\Endava\EndevLocal\Licenta\publish\MQTTnet.dll
+C:\Endava\EndevLocal\Licenta\publish\Npgsql.dll
+C:\Endava\EndevLocal\Licenta\publish\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Endava\EndevLocal\Licenta\publish\Superpower.dll
+C:\Endava\EndevLocal\Licenta\publish\Licenta.API.deps.json
