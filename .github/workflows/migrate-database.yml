@@ -16,12 +16,18 @@ jobs:
         with:
           dotnet-version: '10.x'
 
+      - name: Restore dependencies
+        run: dotnet restore backend/Licenta.API/Licenta.API.csproj
+
+      - name: Build project
+        run: dotnet build backend/Licenta.API/Licenta.API.csproj --configuration Release --no-restore
+
       - name: Install EF Core CLI
         run: |
-          dotnet tool install --global dotnet-ef
+          dotnet tool install --global dotnet-ef --version 10.0.10
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
-      - name: Apply migration
+      - name: Apply database migration
         env:
           POSTGRES_CONNECTION_STRING: ${{ secrets.POSTGRES_CONNECTION_STRING }}
           MQTT_HOST: ${{ secrets.MQTT_HOST }}
@@ -30,4 +36,8 @@ jobs:
           MQTT_PASSWORD: ${{ secrets.MQTT_PASSWORD }}
           MQTT_TOPIC: ${{ secrets.MQTT_TOPIC }}
           MQTT_USE_TLS: ${{ secrets.MQTT_USE_TLS }}
-        run: dotnet ef database update --project backend/Licenta.API --connection "$POSTGRES_CONNECTION_STRING"
+        run: >
+          dotnet ef database update
+          --project backend/Licenta.API/Licenta.API.csproj
+          --startup-project backend/Licenta.API/Licenta.API.csproj
+          --connection "$POSTGRES_CONNECTION_STRING"
