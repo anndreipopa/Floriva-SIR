@@ -1,1 +1,3 @@
 backend/Licenta.API/.env
+**/bin/
+**/obj/
