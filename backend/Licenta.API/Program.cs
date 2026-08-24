@@ -68,6 +68,15 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
+app.MapGet("/api/sensors/latest", (SensorReadingStore store ) =>
+{
+    var latest = store.GetLatest();
+
+    return latest is null
+    ? Results.NotFound("No sensor reading received yet.")
+    : Results.Ok(latest);
+});
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
