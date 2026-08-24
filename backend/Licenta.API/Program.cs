@@ -78,6 +78,14 @@ app.MapGet("/api/sensors/latest", (SensorReadingStore store ) =>
     : Results.Ok(latest);
 });
 
+app.MapGet("/api/sensors/history", async(FlorivaDbContext db, CancellationToken cancellationToken) =>
+{
+    var since = DateTime.UtcNow.AddHours(-24);
+   var readings = await db.SensorReadings.AsNoTracking().OrderBy(reading => reading.ReceivedAtUtc >= since).Take(48).ToListAsync(cancellationToken);
+
+   return Results.Ok(readings);
+});
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
