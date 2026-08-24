@@ -38,6 +38,7 @@ builder.Services.AddSingleton(mqttOptions);
 builder.Services.AddSingleton<SensorReadingStore>();
 builder.Services.AddHostedService<MqttSubscriberService>();
 builder.Services.AddDbContext<FlorivaDbContext>(options => options.UseNpgsql(postgresConnectionString));
+builder.Services.AddHostedService<SensorReadingPersistenceService>();
 
 var app = builder.Build();
 
