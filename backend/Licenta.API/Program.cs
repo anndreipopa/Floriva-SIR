@@ -1,5 +1,7 @@
 using Licenta.API.Mqtt;
 using Licenta.API.Services;
+using Licenta.API.Data;
+using Microsoft.EntityFrameworkCore;
 DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,13 @@ if (string.IsNullOrWhiteSpace(mqttOptions.Host) ||
     throw new InvalidOperationException("MQTT configuration is incomplete.");
 }
 
+var postgresConnectionString = builder.Configuration["POSTGRES_CONNECTION_STRING"];
+
+if (string.IsNullOrWhiteSpace(postgresConnectionString))
+{
+    throw new InvalidOperationException("PostgreSQL connection string is missing.");
+}
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -28,6 +37,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton(mqttOptions);
 builder.Services.AddSingleton<SensorReadingStore>();
 builder.Services.AddHostedService<MqttSubscriberService>();
+builder.Services.AddDbContext<FlorivaDbContext>(options => options.UseNpgsql(postgresConnectionString));
 
 var app = builder.Build();
 

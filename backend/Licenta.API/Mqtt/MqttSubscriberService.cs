@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using System.Text;
 using MQTTnet;
 using Licenta.API.Services;
+using System.Text.Json;
+using Licenta.API.Models;
 
 namespace Licenta.API.Mqtt;
 
@@ -49,6 +51,21 @@ public class MqttSubscriberService : BackgroundService
         {
             var payload = Encoding.UTF8.GetString(
                 e.ApplicationMessage.Payload);
+
+            var reading = JsonSerializer.Deserialize<SensorReading>(payload, new JsonSerializerOptions{
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (reading is null)
+            {
+                _logger.LogWarning("Invalid sensor payload: {Payload}", payload);
+                return Task.CompletedTask;
+            }
+
+            reading.ReceivedAtUtc = DateTime.UtcNow;
+            _store.SetLatest(reading);
+
+            _logger.LogInformation("Latest reading stored: Temp={Temperature}, RH={Humidity}, Lux={Lux}", reading.Temperature, reading.Humidity, reading.Lux);
 
             _logger.LogInformation(
                 "Received MQTT message on {Topic}: {Payload}",
