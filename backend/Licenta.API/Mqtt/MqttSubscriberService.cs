@@ -9,6 +9,10 @@ using Licenta.API.Models;
 
 namespace Licenta.API.Mqtt;
 
+/// <summary>
+/// Maintains the MQTT subscription and places each valid sensor payload
+/// into the shared in-memory latest-reading store.
+/// </summary>
 public class MqttSubscriberService : BackgroundService
 {
     private readonly MqttOptions _options;
@@ -46,7 +50,7 @@ public class MqttSubscriberService : BackgroundService
         var mqttOptions = optionsBuilder.Build();
 
         
-
+// MQTT callbacks update the shared store whenever the ESP32 publishes a reading
         client.ApplicationMessageReceivedAsync += e =>
         {
             var payload = Encoding.UTF8.GetString(
@@ -61,7 +65,7 @@ public class MqttSubscriberService : BackgroundService
                 _logger.LogWarning("Invalid sensor payload: {Payload}", payload);
                 return Task.CompletedTask;
             }
-
+//Use server receipt time so timestamps do not depends on the ESP32 clock.
             reading.ReceivedAtUtc = DateTime.UtcNow;
             _store.SetLatest(reading);
 
@@ -91,6 +95,7 @@ public class MqttSubscriberService : BackgroundService
 
         try
         {
+            //Keep the hosted service alive while MQTTnet receives messages through callbacks.
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
         catch (OperationCanceledException)

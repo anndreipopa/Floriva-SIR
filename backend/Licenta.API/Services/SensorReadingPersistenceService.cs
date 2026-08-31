@@ -5,7 +5,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Licenta.API.Services;
-
+/// <summary>
+/// Saves a snapshot of the latest in mem reading to PostgreSQL every 30 minutes
+/// </summary>
 public class SensorReadingPersistenceService : BackgroundService
 {
     private readonly SensorReadingStore _store;
@@ -32,7 +34,7 @@ public class SensorReadingPersistenceService : BackgroundService
                 _logger.LogInformation("No sensor reading available yet.");
                 continue;
             }
-
+            //Create a new entity because the in mem object is shared and may be replaced
             var readingToSave = new SensorReading
             {
                 Temperature = latest.Temperature,
@@ -40,7 +42,8 @@ public class SensorReadingPersistenceService : BackgroundService
                 Lux = latest.Lux,
                 ReceivedAtUtc = latest.ReceivedAtUtc
             };
-
+            // Hosted services are singletons, while EFCore DbContext instances are scoped.
+            //A new scope gives each persistence operation its own DbContext
             using var scope = _scopeFactory.CreateScope();
 
             var db = scope.ServiceProvider.GetRequiredService<FlorivaDbContext>();

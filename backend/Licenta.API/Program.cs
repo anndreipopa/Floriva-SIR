@@ -2,6 +2,9 @@ using Licenta.API.Mqtt;
 using Licenta.API.Services;
 using Licenta.API.Data;
 using Microsoft.EntityFrameworkCore;
+
+//Loads local .env values during development. Azure supplies the same values
+//through app service env variables.
 DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,7 @@ var mqttOptions = new MqttOptions
     UseTls = bool.Parse(builder.Configuration["MQTT_USE_TLS"] ?? "true")
 };
 
+//Fail during startup rather than running a semi-configured MQTT client
 if (string.IsNullOrWhiteSpace(mqttOptions.Host) ||
     string.IsNullOrWhiteSpace(mqttOptions.Username) ||
     string.IsNullOrWhiteSpace(mqttOptions.Password) ||
@@ -34,6 +38,8 @@ if (string.IsNullOrWhiteSpace(postgresConnectionString))
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+//The subscriber and persistence worker share one singleton in-memory reading store.
+//FlorivaDbContext is scopes and must not be injected directly into hosted services
 builder.Services.AddSingleton(mqttOptions);
 builder.Services.AddSingleton<SensorReadingStore>();
 builder.Services.AddHostedService<MqttSubscriberService>();
@@ -69,6 +75,8 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
+
+//Returns the latest MQTT reading from memory. It may not exist after startup yet
 app.MapGet("/api/sensors/latest", (SensorReadingStore store ) =>
 {
     var latest = store.GetLatest();
@@ -78,10 +86,18 @@ app.MapGet("/api/sensors/latest", (SensorReadingStore store ) =>
     : Results.Ok(latest);
 });
 
+//Select the newest 48 readings from the last 24 hours then return them
+//Chronologically so the frontend can plot them directly.
 app.MapGet("/api/sensors/history", async(FlorivaDbContext db, CancellationToken cancellationToken) =>
 {
     var since = DateTime.UtcNow.AddHours(-24);
-   var readings = await db.SensorReadings.AsNoTracking().OrderBy(reading => reading.ReceivedAtUtc >= since).Take(48).ToListAsync(cancellationToken);
+   var readings = await db.SensorReadings
+    .AsNoTracking()
+    .Where(reading => reading.ReceivedAtUtc >= since)
+    .OrderByDescending(reading => reading.ReceivedAtUtc)
+    .Take(48)
+    .OrderBy(reading => reading.ReceivedAtUtc)
+    .ToListAsync(cancellationToken);
 
    return Results.Ok(readings);
 });

@@ -1,5 +1,9 @@
 namespace Licenta.API.Mqtt;
 
+/// <summary>
+/// Configuration required to connect and subscribe to the mqtt broker
+/// values are populated from envionmnent variables during startup
+/// </summary>
 public class MqttOptions
 {
     public string Host {get; set; } = string.Empty;
