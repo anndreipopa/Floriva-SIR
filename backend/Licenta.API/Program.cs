@@ -2,6 +2,7 @@ using Licenta.API.Mqtt;
 using Licenta.API.Services;
 using Licenta.API.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 //Loads local .env values during development. Azure supplies the same values
 //through app service env variables.
@@ -46,6 +47,17 @@ builder.Services.AddHostedService<MqttSubscriberService>();
 builder.Services.AddDbContext<FlorivaDbContext>(options => options.UseNpgsql(postgresConnectionString));
 builder.Services.AddHostedService<SensorReadingPersistenceService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -55,6 +67,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
 
 var summaries = new[]
 {
