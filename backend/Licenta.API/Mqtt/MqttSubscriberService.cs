@@ -85,7 +85,11 @@ public class MqttSubscriberService : BackgroundService
                 readingDto,
                 stoppingToken);
 
-            _logger.LogInformation("Latest reading stored: Temp={Temperature}, RH={Humidity}, Lux={Lux}", reading.Temperature, reading.Humidity, reading.Lux);
+            _logger.LogInformation(
+            "Live reading updated in memory and broadcast: Temp={Temperature}, RH={Humidity}, Lux={Lux}",
+            reading.Temperature,
+            reading.Humidity,
+            reading.Lux);
 
             _logger.LogInformation(
                 "Received MQTT message on {Topic}: {Payload}",

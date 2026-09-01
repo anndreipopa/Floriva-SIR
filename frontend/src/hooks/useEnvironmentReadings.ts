@@ -48,9 +48,6 @@ export function useEnvironmentReadings(){
                 return new Date(reading.receivedAtUtc) > new Date(current.receivedAtUtc) ? reading : current
             })
 
-            //Live points are appended immediately. Persisted REST history remains
-            // the recovery source after a reload or SignalR reconn.
-            setHistory((current) => mergeReading(current, reading))
         }
 
         async function synchronize() {
