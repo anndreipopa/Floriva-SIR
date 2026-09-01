@@ -2,7 +2,7 @@
 //Dates arrive as ISO strings because JSON has no native date type
 
 export interface EnvironmentReading {
-    id: number
+    id?: number
     receivedAtUtc: string
     temperature: number
     humidity: number

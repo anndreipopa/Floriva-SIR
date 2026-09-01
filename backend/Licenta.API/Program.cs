@@ -2,7 +2,8 @@ using Licenta.API.Mqtt;
 using Licenta.API.Services;
 using Licenta.API.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using Licenta.API.Hubs;
+using Licenta.API.Services.Interfaces;
 
 //Loads local .env values during development. Azure supplies the same values
 //through app service env variables.
@@ -38,6 +39,8 @@ if (string.IsNullOrWhiteSpace(postgresConnectionString))
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IEnvironmentUpdatePublisher, SignalREnvironmentUpdatePublisher>();
 
 //The subscriber and persistence worker share one singleton in-memory reading store.
 //FlorivaDbContext is scopes and must not be injected directly into hosted services
@@ -54,7 +57,9 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
+
     });
 });
 
@@ -68,6 +73,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
+app.MapHub<EnvironmentHub>("/hubs/environment");
 
 var summaries = new[]
 {
