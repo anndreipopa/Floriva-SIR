@@ -28,36 +28,39 @@ const metrics: Record<MetricKey, MetricDefinition> = {
   temperature: {
     label: 'Temperature',
     unit: '°C',
-    color: '#e15f47',
+    color: '#ff6f61',
     gradientId: 'temperature-area',
     axis: 'ambient',
   },
   humidity: {
     label: 'Humidity',
     unit: '%',
-    color: '#078a9c',
+    color: '#00bfd3',
     gradientId: 'humidity-area',
     axis: 'ambient',
   },
   lux: {
     label: 'Light',
     unit: 'lux',
-    color: '#b58b16',
+    color: '#a7d83c',
     gradientId: 'light-area',
     axis: 'light',
   },
 }
 
+const defaultVisibleMetrics: Record<MetricKey, boolean> = {
+  temperature: true,
+  humidity: true,
+  lux: false,
+}
+
 export function EnvironmentHistoryChart({
   readings,
 }: EnvironmentHistoryChartProps) {
-  const [visibleMetrics, setVisibleMetrics] = useState<
-    Record<MetricKey, boolean>
-  >({
-    temperature: true,
-    humidity: true,
-    lux: false,
-  })
+  const [visibleMetrics, setVisibleMetrics] =
+    useState<Record<MetricKey, boolean>>(
+      defaultVisibleMetrics,
+    )
 
   const chartData = readings.map((reading) => ({
     ...reading,
@@ -79,20 +82,20 @@ export function EnvironmentHistoryChart({
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-border/80 bg-surface">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border/70 px-6 py-5">
+    <section className="overflow-hidden rounded-2xl border border-white/85 bg-white/75 backdrop-blur-md shadow-[0_14px_32px_-20px_rgba(20,110,105,0.45)]">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/80 px-5 py-5 sm:px-6">
         <div>
-          <h3 className="m-0 text-base font-semibold text-ink">
+          <h3 className="m-0 text-base font-extrabold text-ink">
             Sensor history
           </h3>
 
-          <p className="mb-0 mt-1 text-sm text-muted">
-            Recorded at 30-minute intervals
+          <p className="m-0 mt-1 text-sm font-medium text-muted">
+            Persisted readings from the last 24 hours
           </p>
         </div>
 
         <div
-          className="flex flex-wrap gap-1 rounded-md border border-border/70 bg-surface-muted/70 p-1"
+          className="flex flex-wrap gap-1 rounded-xl border border-white/80 bg-cyan-soft/70 p-1 backdrop-blur-sm"
           aria-label="Visible chart values"
         >
           {(Object.keys(metrics) as MetricKey[]).map((metric) => {
@@ -106,17 +109,17 @@ export function EnvironmentHistoryChart({
                 aria-pressed={isVisible}
                 onClick={() => toggleMetric(metric)}
                 className={`
-                  flex min-h-9 items-center gap-2 rounded-sm px-3
-                  text-sm font-semibold transition-colors
+                  flex min-h-9 items-center gap-2 rounded-lg px-3
+                  text-sm font-extrabold transition-colors
                   ${
                     isVisible
-                      ? 'bg-surface text-ink ring-1 ring-border'
-                      : 'text-muted hover:bg-surface/60 hover:text-ink'
+                      ? 'bg-white/95 text-ink shadow-[0_3px_10px_-5px_rgba(20,110,105,0.45)]'
+                      : 'text-muted hover:bg-white/60 hover:text-ink'
                   }
                 `}
               >
                 <span
-                  className="h-2 w-2 rounded-full"
+                  className="h-2.5 w-2.5 rounded-full"
                   style={{
                     backgroundColor: definition.color,
                     opacity: isVisible ? 1 : 0.35,
@@ -131,19 +134,19 @@ export function EnvironmentHistoryChart({
       </header>
 
       {readings.length === 0 ? (
-        <div className="grid h-[440px] place-items-center px-6 text-center">
+        <div className="grid h-[360px] place-items-center px-6 text-center sm:h-[420px]">
           <div>
-            <p className="mb-1 font-medium text-ink">
+            <p className="mb-1 font-extrabold text-ink">
               No historical readings
             </p>
 
             <p className="m-0 text-sm text-muted">
-              Recorded sensor values will appear here.
+              Persisted sensor values will appear here.
             </p>
           </div>
         </div>
       ) : (
-        <div className="h-[440px] w-full px-3 pb-5 pt-8 sm:px-6">
+        <div className="h-[320px] w-full px-2 pb-5 pt-7 sm:h-[380px] sm:px-5 lg:h-[420px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}
@@ -165,17 +168,17 @@ export function EnvironmentHistoryChart({
                   <stop
                     offset="0%"
                     stopColor={metrics.temperature.color}
-                    stopOpacity={0.3}
+                    stopOpacity={0.42}
                   />
                   <stop
-                    offset="55%"
+                    offset="58%"
                     stopColor={metrics.temperature.color}
-                    stopOpacity={0.1}
+                    stopOpacity={0.16}
                   />
                   <stop
                     offset="100%"
                     stopColor={metrics.temperature.color}
-                    stopOpacity={0.01}
+                    stopOpacity={0.015}
                   />
                 </linearGradient>
 
@@ -189,17 +192,17 @@ export function EnvironmentHistoryChart({
                   <stop
                     offset="0%"
                     stopColor={metrics.humidity.color}
-                    stopOpacity={0.3}
+                    stopOpacity={0.42}
                   />
                   <stop
-                    offset="55%"
+                    offset="58%"
                     stopColor={metrics.humidity.color}
-                    stopOpacity={0.1}
+                    stopOpacity={0.16}
                   />
                   <stop
                     offset="100%"
                     stopColor={metrics.humidity.color}
-                    stopOpacity={0.01}
+                    stopOpacity={0.015}
                   />
                 </linearGradient>
 
@@ -213,24 +216,24 @@ export function EnvironmentHistoryChart({
                   <stop
                     offset="0%"
                     stopColor={metrics.lux.color}
-                    stopOpacity={0.3}
+                    stopOpacity={0.42}
                   />
                   <stop
-                    offset="55%"
+                    offset="58%"
                     stopColor={metrics.lux.color}
-                    stopOpacity={0.1}
+                    stopOpacity={0.16}
                   />
                   <stop
                     offset="100%"
                     stopColor={metrics.lux.color}
-                    stopOpacity={0.01}
+                    stopOpacity={0.015}
                   />
                 </linearGradient>
               </defs>
 
               <CartesianGrid
                 vertical={false}
-                stroke="#e3e7e3"
+                stroke="#c9e1e1"
                 strokeWidth={1}
               />
 
@@ -244,9 +247,9 @@ export function EnvironmentHistoryChart({
                 minTickGap={45}
                 tickMargin={14}
                 tick={{
-                  fill: '#737b74',
+                  fill: '#628083',
                   fontSize: 12,
-                  fontWeight: 500,
+                  fontWeight: 700,
                 }}
                 tickFormatter={formatTime}
               />
@@ -257,11 +260,11 @@ export function EnvironmentHistoryChart({
                 axisLine={false}
                 tickLine={false}
                 tickMargin={10}
-                width={38}
+                width={40}
                 tick={{
-                  fill: '#737b74',
+                  fill: '#628083',
                   fontSize: 12,
-                  fontWeight: 500,
+                  fontWeight: 700,
                 }}
               />
 
@@ -275,17 +278,17 @@ export function EnvironmentHistoryChart({
                 width={48}
                 hide={!visibleMetrics.lux}
                 tick={{
-                  fill: '#737b74',
+                  fill: '#628083',
                   fontSize: 12,
-                  fontWeight: 500,
+                  fontWeight: 700,
                 }}
               />
 
               <Tooltip
                 cursor={{
-                  stroke: '#6d8b76',
+                  stroke: '#25c7d8',
                   strokeWidth: 24,
-                  strokeOpacity: 0.08,
+                  strokeOpacity: 0.14,
                 }}
                 labelFormatter={(timestamp) =>
                   new Date(Number(timestamp)).toLocaleString()
@@ -301,22 +304,24 @@ export function EnvironmentHistoryChart({
                 }}
                 contentStyle={{
                   padding: '12px 14px',
-                  border: '1px solid #d8dfd8',
-                  borderRadius: '6px',
-                  backgroundColor: '#fcfdfb',
-                  boxShadow: '0 10px 24px -12px rgb(16 43 32 / 25%)',
+                  border: '1px solid rgba(255, 255, 255, 0.95)',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                  boxShadow:
+                    '0 14px 30px -16px rgba(20, 110, 105, 0.45)',
+                  backdropFilter: 'blur(12px)',
                 }}
                 labelStyle={{
                   marginBottom: '8px',
-                  color: '#687269',
+                  color: '#628083',
                   fontSize: '12px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
                 itemStyle={{
                   paddingTop: '2px',
                   paddingBottom: '2px',
                   fontSize: '13px',
-                  fontWeight: 600,
+                  fontWeight: 800,
                 }}
               />
 
@@ -336,7 +341,7 @@ export function EnvironmentHistoryChart({
                   activeDot={{
                     r: 5,
                     fill: metrics.temperature.color,
-                    stroke: '#fcfdfb',
+                    stroke: '#ffffff',
                     strokeWidth: 3,
                   }}
                   animationDuration={650}
@@ -359,7 +364,7 @@ export function EnvironmentHistoryChart({
                   activeDot={{
                     r: 5,
                     fill: metrics.humidity.color,
-                    stroke: '#fcfdfb',
+                    stroke: '#ffffff',
                     strokeWidth: 3,
                   }}
                   animationDuration={650}
@@ -382,7 +387,7 @@ export function EnvironmentHistoryChart({
                   activeDot={{
                     r: 5,
                     fill: metrics.lux.color,
-                    stroke: '#fcfdfb',
+                    stroke: '#ffffff',
                     strokeWidth: 3,
                   }}
                   animationDuration={650}

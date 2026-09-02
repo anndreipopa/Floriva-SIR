@@ -33,14 +33,18 @@ export function useEnvironmentReadings(){
     const [apiError, setApiError] = useState<string | null>(null)
     const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('connecting')
     const [now, setNow] = useState(Date.now())
+    const [lastSensorReceivedAt, setLastSensorReceivedAt] =
+    useState<number | null>(null)
 
     useEffect(() => {
         const controller = new AbortController()
         const connection = createEnvironmentConnection()
         let active = true
 
-        function receiveReading(reading: EnvironmentReading) {
+        function receiveReading(reading: EnvironmentReading, receivedAt = Date.now()) {
             if (!active) return
+
+            setLastSensorReceivedAt(receivedAt)
 
             setLatest((current) => {
                 if (!current) return reading
@@ -60,7 +64,10 @@ export function useEnvironmentReadings(){
                 if (!active) return
 
                 if (latestReading) {
-                receiveReading(latestReading)
+                receiveReading(
+                    latestReading,
+                    new Date(latestReading.receivedAtUtc).getTime(),
+                )
                 }
 
                 setHistory((current) => {
@@ -141,6 +148,7 @@ export function useEnvironmentReadings(){
             isLoading,
             apiError,
             realtimeStatus,
+            lastSensorReceivedAt,
             now,
         }
     }

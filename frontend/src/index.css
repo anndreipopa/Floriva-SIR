@@ -1,26 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'DM Sans', sans-serif;
+  --font-sans: 'Nunito', sans-serif;
 
-  --color-canvas: #f1f3ef;
-  --color-surface: #fcfdfb;
-  --color-surface-muted: #e9ede8;
-  --color-ink: #172019;
-  --color-muted: #687269;
-  --color-border: #d8dfd8;
+  /* Luminous cool foundation */
+  --color-canvas: #eef8fa;
+  --color-surface: rgb(255 255 255 / 78%);
+  --color-surface-solid: #ffffff;
+  --color-surface-muted: #e0f1f2;
 
-  --color-forest: #163d2c;
-  --color-forest-dark: #173e33;
-  --color-moss: #83a98a;
-  --color-moss-soft: #dfe9e1;
+  /* Text and structure */
+  --color-ink: #173b3d;
+  --color-muted: #628083;
+  --color-border: rgb(255 255 255 / 85%);
 
-  --color-temperature: #c7614d;
-  --color-humidity: #397f99;
-  --color-light: #aa7c25;
-  --color-success: #3f7d54;
-  --color-warning: #a67325;
+  /* Sidebar and brand */
+  --color-forest: #145448;
+  --color-forest-dark: #0d4038;
+  --color-forest-hover: #1b6d5d;
+  --color-sidebar-text: #f3fffc;
+
+  /* Luminous accents */
+  --color-mint: #5de0b2;
+  --color-mint-soft: #d8f8ec;
+  --color-cyan: #25c7d8;
+  --color-cyan-soft: #d9f6f8;
+  --color-accent: #e86b5c;
+  --color-accent-hover: #c95448;
+
+  /* Chart colors */
+  --color-temperature: #f06d5c;
+  --color-humidity: #16b8c8;
+  --color-light: #9bcf3f;
+
+  /* Status colors */
+  --color-success: #29b982;
+  --color-warning: #e1a63b;
 }
 
 @layer base {
@@ -34,7 +50,8 @@
     min-height: 100vh;
     margin: 0;
     color: var(--color-ink);
-    background: var(--color-canvas);
+    background:
+      linear-gradient(135deg, #eef8fa 0%, #f7fcfb 52%, #e7f5f1 100%);
   }
 
   button {
