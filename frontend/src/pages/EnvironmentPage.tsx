@@ -60,31 +60,32 @@ export function EnvironmentPage() {
     )
   }
 
-  const readingAgeMs = lastSensorReceivedAt
-    ? now - lastSensorReceivedAt
-    : null
+  const readingAgeMs =
+    lastSensorReceivedAt === null
+      ? null
+      : now - lastSensorReceivedAt
 
   const isFresh =
     readingAgeMs !== null &&
     readingAgeMs >= 0 &&
-    readingAgeMs < 2 * 60_000
+    readingAgeMs < 35_000
 
   return (
-    <main className="w-full">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <main className="w-full lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-3">
+      <header className="mb-4 flex flex-wrap items-end justify-between gap-3 lg:mb-0">
         <div>
-          <h1 className="m-0 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+          <h1 className="m-0 text-3xl font-extrabold tracking-tight text-ink">
             Environment
           </h1>
 
-          <p className="m-0 mt-2 text-sm text-muted sm:text-base">
+          <p className="m-0 mt-1 text-sm text-muted">
             A live view of the conditions around your plants.
           </p>
         </div>
 
         {latest && (
-          <div className="rounded-xl border border-white/85 bg-white/65 px-4 py-3 backdrop-blur-sm">
-            <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.1em] text-muted">
+          <div className="rounded-xl border border-white/85 bg-white/65 px-3 py-2 backdrop-blur-sm">
+            <p className="mb-0.5 text-xs font-extrabold uppercase tracking-[0.1em] text-muted">
               Latest reading
             </p>
 
@@ -98,19 +99,16 @@ export function EnvironmentPage() {
         )}
       </header>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0 space-y-5">
+      <div className="grid min-h-0 items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-5 lg:grid lg:min-h-0 lg:grid-rows-[auto_minmax(240px,1fr)_auto] lg:gap-3 lg:space-y-0">
           <section aria-labelledby="conditions-heading">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-              <div>
-
-                <h2
-                  id="conditions-heading"
-                  className="m-0 text-xl font-extrabold text-ink"
-                >
-                  Current conditions
-                </h2>
-              </div>
+            <div className="mb-2">
+              <h2
+                id="conditions-heading"
+                className="m-0 text-lg font-extrabold text-ink"
+              >
+                Current conditions
+              </h2>
             </div>
 
             {latest ? (
@@ -139,12 +137,12 @@ export function EnvironmentPage() {
                 />
               </div>
             ) : (
-              <div className={`${glassPanel} p-6`}>
+              <div className={`${glassPanel} p-4`}>
                 <p className="m-0 font-bold text-ink">
                   No live sensor reading is available.
                 </p>
 
-                <p className="m-0 mt-2 text-sm text-muted">
+                <p className="m-0 mt-1 text-sm text-muted">
                   The dashboard will update when the robot sends another
                   reading.
                 </p>
@@ -152,17 +150,18 @@ export function EnvironmentPage() {
             )}
           </section>
 
-          <section aria-labelledby="history-heading">
-
+          <section
+            className="min-h-0"
+            aria-label="Environment history"
+          >
             <EnvironmentHistoryChart readings={history} />
           </section>
 
           <section aria-labelledby="summary-heading">
-            <div className="mb-3">
-
+            <div className="mb-2">
               <h2
                 id="summary-heading"
-                className="m-0 text-xl font-extrabold text-ink"
+                className="m-0 text-lg font-extrabold text-ink"
               >
                 Daily summary
               </h2>
@@ -195,15 +194,15 @@ export function EnvironmentPage() {
           </section>
         </div>
 
-        <aside className="space-y-5">
+        <aside className="space-y-4 lg:grid lg:min-h-0 lg:grid-rows-[auto_auto] lg:content-start lg:gap-3 lg:space-y-0">
           <section
-            className={`${glassPanel} p-5`}
+            className={`${glassPanel} p-4`}
             aria-labelledby="status-heading"
           >
-            <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <h2
                 id="status-heading"
-                className="m-0 text-xl font-extrabold text-ink"
+                className="m-0 text-lg font-extrabold text-ink"
               >
                 System status
               </h2>
@@ -247,7 +246,7 @@ export function EnvironmentPage() {
           </section>
 
           <section
-            className={`${glassPanel} p-5`}
+            className={`${glassPanel} p-4`}
             aria-labelledby="weather-heading"
           >
             <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.1em] text-accent">
@@ -256,17 +255,17 @@ export function EnvironmentPage() {
 
             <h2
               id="weather-heading"
-              className="m-0 text-xl font-extrabold text-ink"
+              className="m-0 text-lg font-extrabold text-ink"
             >
               Weather forecast
             </h2>
 
-            <div className="mt-5 rounded-xl border border-cyan/30 bg-cyan-soft/60 p-4">
+            <div className="mt-3 rounded-xl border border-cyan/30 bg-cyan-soft/60 p-3">
               <p className="mb-1 font-extrabold text-ink">
                 Not configured
               </p>
 
-              <p className="m-0 text-sm leading-6 text-muted">
+              <p className="m-0 text-sm leading-5 text-muted">
                 Weather information will appear after a forecast provider and
                 location are configured.
               </p>
@@ -290,16 +289,16 @@ function Summary({
   valueClass: string
 }) {
   return (
-    <div className="bg-white/65 p-5 backdrop-blur-sm">
-      <p className="mb-3 text-sm font-bold text-muted">
+    <div className="bg-white/65 px-4 py-3 backdrop-blur-sm">
+      <p className="mb-1 text-xs font-bold text-muted">
         {label}
       </p>
 
-      <p className={`m-0 text-3xl font-extrabold ${valueClass}`}>
+      <p className={`m-0 text-2xl font-extrabold ${valueClass}`}>
         {value === null ? '—' : value.toFixed(1)}
 
         {value !== null && (
-          <span className="ml-1 text-base font-bold text-muted">
+          <span className="ml-1 text-sm font-bold text-muted">
             {unit}
           </span>
         )}
@@ -318,18 +317,18 @@ function StatusRow({
   healthy: boolean
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-t border-border/70 py-3 first:border-t-0 first:pt-0">
+    <div className="flex items-center justify-between gap-3 border-t border-border/70 py-2 first:border-t-0 first:pt-0">
       <span className="text-sm font-semibold text-muted">
         {label}
       </span>
 
       <span
-        className={`flex items-center gap-2 text-right text-sm font-extrabold uppercase ${
+        className={`flex items-center gap-2 whitespace-nowrap text-right text-sm font-extrabold uppercase ${
           healthy ? 'text-success' : 'text-warning'
         }`}
       >
         <span
-          className={`h-2.5 w-2.5 rounded-full ${
+          className={`h-2.5 w-2.5 shrink-0 rounded-full ${
             healthy ? 'bg-success' : 'bg-warning'
           }`}
         />

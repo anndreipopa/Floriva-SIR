@@ -13,7 +13,7 @@ const navigationItem =
 
 export function AppShell() {
   return (
-    <div className="min-h-screen bg-canvas md:grid md:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="min-h-screen bg-canvas md:grid lg:h-dvh lg:min-h-0 lg:grid-cols-[240px_minmax(0,1fr)] lg:overflow-hidden">
       <aside
         className="
           sticky top-0 z-20 flex items-center justify-between
@@ -73,7 +73,7 @@ export function AppShell() {
         </nav>
       </aside>
 
-      <div className="min-w-0 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+      <div className="min-w-0 p-5 sm:p-6 lg:min-h-0 lg:overflow-hidden lg:px-8 lg:py-6 xl:px-10">
         <Outlet />
       </div>
     </div>

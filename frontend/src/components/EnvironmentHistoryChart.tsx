@@ -82,7 +82,7 @@ export function EnvironmentHistoryChart({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-white/85 bg-white/75 backdrop-blur-md shadow-[0_14px_32px_-20px_rgba(20,110,105,0.45)]">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/85 bg-white/75 backdrop-blur-md shadow-[0_14px_32px_-20px_rgba(20,110,105,0.45)]">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/80 px-5 py-5 sm:px-6">
         <div>
           <h3 className="m-0 text-base font-extrabold text-ink">
@@ -146,7 +146,7 @@ export function EnvironmentHistoryChart({
           </div>
         </div>
       ) : (
-        <div className="h-[320px] w-full px-2 pb-5 pt-7 sm:h-[380px] sm:px-5 lg:h-[420px]">
+        <div className="h-[320px] min-h-[240px] w-full px-2 pb-3 pt-4 sm:h-[360px] sm:px-4 lg:h-auto lg:min-h-0 lg:flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}
