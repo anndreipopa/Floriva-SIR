@@ -4,6 +4,7 @@ import { ReadingMetric } from '../components/ReadingMetric'
 import { useEnvironmentReadings } from '../hooks/useEnvironmentReadings'
 import type { EnvironmentReading } from '../types/sensorReading'
 import { useWeather } from '../hooks/useWeather'
+import { WeatherForecastCard } from '../components/WeatherForecastCard'
 type Metric = 'temperature' | 'humidity' | 'lux'
 
 const glassPanel =
@@ -266,22 +267,16 @@ export function EnvironmentPage() {
               Weather forecast
             </h2>
 
-              <pre className="mt-3 overflow-auto text-xs text-muted">
-              {JSON.stringify(
-                {
-                  isWeatherLoading,
-                  weatherError,
-                  weather,
-                },
-                null,
-                2,
-              )}
-            </pre>
-          </section>
-        </aside>
-      </div>
-    </main>
-  )
+            <WeatherForecastCard
+              weather={weather}
+              isLoading={isWeatherLoading}
+              error={weatherError}
+            />
+                      </section>
+                    </aside>
+                  </div>
+                </main>
+              )
 }
 
 function Summary({
