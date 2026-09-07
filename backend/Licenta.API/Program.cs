@@ -4,6 +4,7 @@ using Licenta.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Licenta.API.Hubs;
 using Licenta.API.Services.Interfaces;
+using Licenta.API.Configuration;
 
 //Loads local .env values during development. Azure supplies the same values
 //through app service env variables.
@@ -18,6 +19,18 @@ var mqttOptions = new MqttOptions
     Password = builder.Configuration["MQTT_PASSWORD"] ?? "",
     Topic = builder.Configuration["MQTT_TOPIC"] ?? "",
     UseTls = bool.Parse(builder.Configuration["MQTT_USE_TLS"] ?? "true")
+};
+
+var weatherOptions = new OpenWeatherMapOptions
+{
+    ApiKey = builder.Configuration["OPENWEATHER_API_KEY"] ?? "",
+    Latitude = double.Parse(
+        builder.Configuration["OPENWEATHER_LATITUDE"] ?? "0"),
+    Longitude = double.Parse(
+        builder.Configuration["OPENWEATHER_LONGITUDE"] ?? "0"),
+    Units = builder.Configuration["OPENWEATHER_UNITS"] ?? "metric",
+    BaseUrl = builder.Configuration["OPENWEATHER_BASE_URL"]
+        ?? "https://api.openweathermap.org/data/2.5/"
 };
 
 //Fail during startup rather than running a semi-configured MQTT client
@@ -41,7 +54,21 @@ if (string.IsNullOrWhiteSpace(postgresConnectionString))
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IEnvironmentUpdatePublisher, SignalREnvironmentUpdatePublisher>();
+builder.Services.Configure<OpenWeatherMapOptions>(
+    options =>
+    {
+        options.ApiKey = weatherOptions.ApiKey;
+        options.Latitude = weatherOptions.Latitude;
+        options.Longitude = weatherOptions.Longitude;
+        options.Units = weatherOptions.Units;
+        options.BaseUrl = weatherOptions.BaseUrl;
+    });
 
+builder.Services.AddMemoryCache();
+
+builder.Services.AddHttpClient<
+    IWeatherService,
+    OpenWeatherMapService>();
 //The subscriber and persistence worker share one singleton in-memory reading store.
 //FlorivaDbContext is scopes and must not be injected directly into hosted services
 builder.Services.AddSingleton(mqttOptions);
@@ -75,25 +102,17 @@ app.UseHttpsRedirection();
 app.UseCors("Frontend");
 app.MapHub<EnvironmentHub>("/hubs/environment");
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapGet(
+    "/api/weather",
+    async (
+        IWeatherService weatherService,
+        CancellationToken cancellationToken) =>
+    {
+        var weather = await weatherService.GetWeatherAsync(
+            cancellationToken);
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
+        return Results.Ok(weather);
+    });
 
 //Returns the latest MQTT reading from memory. It may not exist after startup yet
 app.MapGet("/api/sensors/latest", (SensorReadingStore store ) =>
@@ -122,8 +141,3 @@ app.MapGet("/api/sensors/history", async(FlorivaDbContext db, CancellationToken 
 });
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

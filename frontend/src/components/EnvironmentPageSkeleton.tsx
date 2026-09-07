@@ -14,81 +14,125 @@ const glassPanel =
 export function EnvironmentPageSkeleton() {
   return (
     <main
-      className="mx-auto w-full max-w-[1500px]"
+      className="w-full lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-3"
       aria-busy="true"
       aria-label="Loading environment data"
     >
-      <header className="mb-6 flex items-end justify-between gap-4">
+      <header className="mb-4 flex flex-wrap items-end justify-between gap-3 lg:mb-0">
         <div>
-          <SkeletonBlock className="mb-3 h-4 w-40" />
-          <SkeletonBlock className="h-11 w-64" />
-          <SkeletonBlock className="mt-3 h-4 w-80 max-w-full" />
+          <SkeletonBlock className="h-9 w-48" />
+          <SkeletonBlock className="mt-2 h-4 w-80 max-w-full" />
         </div>
 
-        <div className="hidden sm:block">
-          <SkeletonBlock className="mb-2 ml-auto h-4 w-28" />
-          <SkeletonBlock className="h-5 w-48" />
+        <div className="rounded-xl border border-white/85 bg-white/45 px-3 py-2">
+          <SkeletonBlock className="mb-2 h-3 w-24" />
+          <SkeletonBlock className="h-4 w-40" />
         </div>
       </header>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="min-w-0 space-y-5">
-          <section>
-            <div className="mb-3 flex justify-between gap-4">
-              <div>
-                <SkeletonBlock className="mb-2 h-3 w-24" />
-                <SkeletonBlock className="h-7 w-48" />
-              </div>
+      <div className="grid min-h-0 items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-5 lg:grid lg:min-h-0 lg:grid-rows-[auto_minmax(240px,1fr)_auto] lg:gap-3 lg:space-y-0">
+          <section aria-label="Loading current conditions">
+            <SkeletonBlock className="mb-2 h-6 w-40" />
 
-              <SkeletonBlock className="h-5 w-28" />
-            </div>
-
-            <div className={`${glassPanel} grid gap-px bg-white/70 sm:grid-cols-3`}>
+            <div
+              className={`${glassPanel} grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3`}
+            >
               {Array.from({ length: 3 }).map((_, index) => (
-                <div className="min-h-40 p-6" key={index}>
-                  <SkeletonBlock className="mb-6 h-4 w-28" />
-                  <SkeletonBlock className="h-12 w-36" />
-                </div>
-              ))}
-            </div>
-          </section>
+                <div
+                  className="min-w-0 bg-white/35 px-4 py-5"
+                  key={index}
+                >
+                  <div className="mb-4 flex items-center gap-2">
+                    <SkeletonBlock className="h-8 w-8 rounded-lg" />
+                    <SkeletonBlock className="h-3 w-24" />
+                  </div>
 
-          <section>
-            <SkeletonBlock className="mb-2 h-3 w-32" />
-            <SkeletonBlock className="mb-2 h-7 w-40" />
-            <SkeletonBlock className="mb-3 h-4 w-48" />
-            <SkeletonBlock className={`${glassPanel} h-[440px] w-full`} />
-          </section>
-
-          <section>
-            <SkeletonBlock className="mb-2 h-3 w-28" />
-            <SkeletonBlock className="mb-3 h-7 w-40" />
-
-            <div className={`${glassPanel} grid gap-px bg-white/70 sm:grid-cols-3`}>
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div className="p-5" key={index}>
-                  <SkeletonBlock className="mb-4 h-4 w-32" />
                   <SkeletonBlock className="h-9 w-24" />
                 </div>
               ))}
             </div>
           </section>
+
+          <section
+            className="min-h-0"
+            aria-label="Loading environment history"
+          >
+            <div
+              className={`${glassPanel} flex h-full min-h-[240px] flex-col overflow-hidden`}
+            >
+              <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/80 px-5 py-5 sm:px-6">
+                <div>
+                  <SkeletonBlock className="h-5 w-28" />
+                  <SkeletonBlock className="mt-2 h-4 w-56 max-w-full" />
+                </div>
+
+                <div className="flex flex-wrap gap-1 rounded-xl border border-white/80 bg-cyan-soft/50 p-1">
+                  <SkeletonBlock className="h-9 w-24 rounded-lg" />
+                  <SkeletonBlock className="h-9 w-20 rounded-lg" />
+                  <SkeletonBlock className="h-9 w-16 rounded-lg" />
+                </div>
+              </header>
+
+              <div className="min-h-[240px] flex-1 bg-white/20" />
+            </div>
+          </section>
+
+          <section aria-label="Loading daily summary">
+            <SkeletonBlock className="mb-2 h-6 w-32" />
+
+            <div
+              className={`${glassPanel} grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3`}
+            >
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  className="bg-white/35 px-4 py-3"
+                  key={index}
+                >
+                  <SkeletonBlock className="mb-2 h-3 w-32" />
+                  <SkeletonBlock className="h-7 w-20" />
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
 
-        <aside className="space-y-5">
-          <div className={`${glassPanel} p-5`}>
-            <SkeletonBlock className="mb-6 h-7 w-36" />
-            <SkeletonBlock className="mb-4 h-5 w-full" />
-            <SkeletonBlock className="mb-4 h-5 w-full" />
-            <SkeletonBlock className="mb-4 h-5 w-full" />
-            <SkeletonBlock className="h-5 w-4/5" />
-          </div>
+        <aside className="space-y-4 lg:grid lg:min-h-0 lg:grid-rows-[auto_auto] lg:content-start lg:gap-3 lg:space-y-0">
+          <section
+            className={`${glassPanel} p-4`}
+            aria-label="Loading system status"
+          >
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <SkeletonBlock className="h-6 w-32" />
+              <SkeletonBlock className="h-3 w-3 rounded-full" />
+            </div>
 
-          <div className={`${glassPanel} p-5`}>
+            <div>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  className="flex items-center justify-between gap-3 border-t border-border/50 py-2 first:border-t-0 first:pt-0"
+                  key={index}
+                >
+                  <SkeletonBlock className="h-4 w-32" />
+                  <SkeletonBlock className="h-4 w-24" />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section
+            className={`${glassPanel} p-4`}
+            aria-label="Loading weather forecast"
+          >
             <SkeletonBlock className="mb-2 h-3 w-24" />
-            <SkeletonBlock className="mb-6 h-7 w-44" />
-            <SkeletonBlock className="h-24 w-full" />
-          </div>
+            <SkeletonBlock className="h-6 w-40" />
+
+            <div className="mt-3 rounded-xl border border-cyan/20 bg-cyan-soft/40 p-3">
+              <SkeletonBlock className="h-5 w-28" />
+              <SkeletonBlock className="mt-2 h-4 w-full" />
+              <SkeletonBlock className="mt-2 h-4 w-4/5" />
+            </div>
+          </section>
         </aside>
       </div>
 

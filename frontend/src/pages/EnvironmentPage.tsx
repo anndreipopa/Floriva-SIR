@@ -3,7 +3,7 @@ import { EnvironmentPageSkeleton } from '../components/EnvironmentPageSkeleton'
 import { ReadingMetric } from '../components/ReadingMetric'
 import { useEnvironmentReadings } from '../hooks/useEnvironmentReadings'
 import type { EnvironmentReading } from '../types/sensorReading'
-
+import { useWeather } from '../hooks/useWeather'
 type Metric = 'temperature' | 'humidity' | 'lux'
 
 const glassPanel =
@@ -36,6 +36,12 @@ export function EnvironmentPage() {
     lastSensorReceivedAt,
     now,
   } = useEnvironmentReadings()
+
+    const {
+    weather,
+    isLoading: isWeatherLoading,
+    error: weatherError,
+  } = useWeather()
 
   if (isLoading) {
     return <EnvironmentPageSkeleton />
@@ -260,16 +266,17 @@ export function EnvironmentPage() {
               Weather forecast
             </h2>
 
-            <div className="mt-3 rounded-xl border border-cyan/30 bg-cyan-soft/60 p-3">
-              <p className="mb-1 font-extrabold text-ink">
-                Not configured
-              </p>
-
-              <p className="m-0 text-sm leading-5 text-muted">
-                Weather information will appear after a forecast provider and
-                location are configured.
-              </p>
-            </div>
+              <pre className="mt-3 overflow-auto text-xs text-muted">
+              {JSON.stringify(
+                {
+                  isWeatherLoading,
+                  weatherError,
+                  weather,
+                },
+                null,
+                2,
+              )}
+            </pre>
           </section>
         </aside>
       </div>
