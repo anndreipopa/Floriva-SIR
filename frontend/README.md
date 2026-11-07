@@ -1,75 +1,76 @@
-# React + TypeScript + Vite
+# Floriva Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Web dashboard for the Floriva plant-watering robot. It shows live and historical environment data and the local weather forecast, in a light, airy interface with a Frutiger Aero-inspired look.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Live readings** of temperature, humidity and light, updated in real time over SignalR.
+- **24-hour history chart** (Recharts) with per-metric toggles and gradient area fills.
+- **Weather forecast card** with current conditions and a multi-day outlook, refreshed every 15 minutes.
+- **Resilient connection handling**: automatic reconnect with back-off, re-sync after a dropped connection, and a freshness indicator.
+- **Skeleton loading states** that mirror the final layout, plus explicit error and empty states.
+- **Accessible by design**: semantic markup, `aria-busy` loading regions and screen-reader text.
 
-## React Compiler
+## Tech stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19 · TypeScript · Vite · Tailwind CSS v4 · React Router · Recharts · SignalR client · Phosphor Icons
 
-## Expanding the ESLint configuration
+## Design language
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Soft aqua-to-mint gradient background, translucent "glass" panels with backdrop blur, rounded corners, gentle teal shadows, and a forest-green sidebar. Typography is Nunito. Colours, radii and shadows are defined as design tokens in `src/index.css` (Tailwind `@theme`).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project structure
 
 ```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+src/
+├── api/          Typed REST clients (sensor readings, weather)
+├── realtime/     SignalR connection
+├── hooks/        Data hooks: useEnvironmentReadings, useWeather
+├── components/   AppShell, charts, metric tiles, weather card, skeletons
+├── pages/        EnvironmentPage
+├── types/        Shared TypeScript types
+├── App.tsx       Routing
+└── index.css     Design tokens and global styles
 ```
+
+Data flows in one direction: typed API client or SignalR connection → hook → component. Components do not fetch data themselves.
+
+## Getting started
+
+Requirements: Node.js 20+ and a running Floriva backend.
+
+```bash
+cd frontend
+npm install
+cp .env.example .env     # then edit the value below
+npm run dev
+```
+
+| Variable | Description |
+|---|---|
+| `VITE_API_BASE_URL` | Base URL of the Floriva backend, e.g. `http://localhost:5000` |
+
+No API keys are used in the browser. Third-party services such as weather are called by the backend.
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the development server |
+| `npm run build` | Type-check and create a production build |
+| `npm run lint` | Run ESLint |
+| `npm run preview` | Preview the production build locally |
+
+## Roadmap
+
+- [ ] Plants page: per-plant details, moisture, manual "Water now"
+- [ ] AUTO/MANUAL mode switch
+- [ ] Watering history, calendar view and prediction chart
+- [ ] Plant species information from the Trefle API
+- [ ] Settings page and notifications
+
+## Related
+
+- [Project overview](../README.md)
+- [Backend](../backend/README.md)
+- [Firmware](../firmware/README.md)

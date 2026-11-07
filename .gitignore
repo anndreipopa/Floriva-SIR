@@ -1,3 +1,28 @@
+# --- Secrets and local environment ---
+.env
+.env.*
+!.env.example
 backend/Licenta.API/.env
+
+# --- Build output ---
 **/bin/
 **/obj/
+publish/
+**/node_modules/
+**/dist/
+firmware/build/
+
+# --- Editor, workspace and OS files (machine-specific) ---
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+
+# --- Markdown is local-only (AI guidance, thesis drafts, notes) except README files ---
+*.md
+!README.md
+!**/README.md
