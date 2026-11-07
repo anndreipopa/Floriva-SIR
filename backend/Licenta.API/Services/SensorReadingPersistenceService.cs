@@ -34,25 +34,34 @@ public class SensorReadingPersistenceService : BackgroundService
                 _logger.LogInformation("No sensor reading available yet.");
                 continue;
             }
-            //Create a new entity because the in mem object is shared and may be replaced
-            var readingToSave = new SensorReading
+            try
             {
-                Temperature = latest.Temperature,
-                Humidity = latest.Humidity,
-                Lux = latest.Lux,
-                ReceivedAtUtc = latest.ReceivedAtUtc
-            };
-            // Hosted services are singletons, while EFCore DbContext instances are scoped.
-            //A new scope gives each persistence operation its own DbContext
-            using var scope = _scopeFactory.CreateScope();
+                //Create a new entity because the in mem object is shared and may be replaced
+                var readingToSave = new SensorReading
+                {
+                    Temperature = latest.Temperature,
+                    Humidity = latest.Humidity,
+                    Lux = latest.Lux,
+                    ReceivedAtUtc = latest.ReceivedAtUtc
+                };
+                // Hosted services are singletons, while EFCore DbContext instances are scoped.
+                //A new scope gives each persistence operation its own DbContext
+                using var scope = _scopeFactory.CreateScope();
 
-            var db = scope.ServiceProvider.GetRequiredService<FlorivaDbContext>();
+                var db = scope.ServiceProvider.GetRequiredService<FlorivaDbContext>();
 
-            db.SensorReadings.Add(readingToSave);
+                db.SensorReadings.Add(readingToSave);
 
-            await db.SaveChangesAsync(stoppingToken);
+                await db.SaveChangesAsync(stoppingToken);
 
-            _logger.LogInformation("Saved sensor reading at {Timestamp}", readingToSave.ReceivedAtUtc);
+                _logger.LogInformation("Saved sensor reading at {Timestamp}", readingToSave.ReceivedAtUtc);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                //A failed save (e.g. database briefly unreachable) must not kill the worker;
+                //the next 30 minute tick tries again.
+                _logger.LogError(ex, "Failed to save sensor reading");
+            }
         }
     }
 }

@@ -49,8 +49,6 @@ if (string.IsNullOrWhiteSpace(postgresConnectionString))
     throw new InvalidOperationException("PostgreSQL connection string is missing.");
 }
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IEnvironmentUpdatePublisher, SignalREnvironmentUpdatePublisher>();
@@ -77,12 +75,18 @@ builder.Services.AddHostedService<MqttSubscriberService>();
 builder.Services.AddDbContext<FlorivaDbContext>(options => options.UseNpgsql(postgresConnectionString));
 builder.Services.AddHostedService<SensorReadingPersistenceService>();
 
+//Comma-separated list of browser origins allowed to call the API. Defaults to the
+//local Vite dev server; production sets its own origin through CORS_ALLOWED_ORIGINS.
+var corsAllowedOrigins = (builder.Configuration["CORS_ALLOWED_ORIGINS"]
+        ?? "http://localhost:5173")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173")
+            .WithOrigins(corsAllowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -92,7 +96,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

@@ -55,23 +55,32 @@ public class MqttSubscriberService : BackgroundService
 
         var mqttOptions = optionsBuilder.Build();
 
-        
-// MQTT callbacks update the shared store whenever the ESP32 publishes a reading
+        // MQTT callbacks update the shared store whenever the ESP32 publishes a reading
         client.ApplicationMessageReceivedAsync += async e =>
         {
             var payload = Encoding.UTF8.GetString(
                 e.ApplicationMessage.Payload);
 
-            var reading = JsonSerializer.Deserialize<SensorReading>(payload, new JsonSerializerOptions{
-                PropertyNameCaseInsensitive = true
-            });
+            SensorReading? reading;
+            try
+            {
+                reading = JsonSerializer.Deserialize<SensorReading>(payload, new JsonSerializerOptions{
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            catch (JsonException ex)
+            {
+                //A malformed payload must never take the subscriber down
+                _logger.LogWarning(ex, "Malformed sensor payload: {Payload}", payload);
+                return;
+            }
 
             if (reading is null)
             {
                 _logger.LogWarning("Invalid sensor payload: {Payload}", payload);
                 return;
             }
-//Use server receipt time so timestamps do not depends on the ESP32 clock.
+            //Use server receipt time so timestamps do not depends on the ESP32 clock.
             reading.ReceivedAtUtc = DateTime.UtcNow;
             _store.SetLatest(reading);
 
