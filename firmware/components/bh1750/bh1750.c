@@ -24,24 +24,24 @@ static const char *TAG = "BH1750";
  * Internal instance structure for a BH1750 sensor.
  * This holds all state needed for a single sensor, allowing
  * multiple independent sensors in the same application.
- * 
+ *
  * Users see only the opaque handle pointer and don't need to
  * know about this internal structure.
  */
 typedef struct bh1750_t {
-    i2c_master_dev_handle_t i2c_dev;   /* Handle to the I2C device (from new I2C master API) */
-    SemaphoreHandle_t mutex;        /* Mutex to protect concurrent access to sensor */
+    i2c_master_dev_handle_t i2c_dev; /* Handle to the I2C device (from new I2C master API) */
+    SemaphoreHandle_t mutex;         /* Mutex to protect concurrent access to sensor */
 } bh1750_t;
 
 /**
  * ===== BH1750 Light Sensor Driver (Multi-Device Architecture) =====
- * 
+ *
  * OWNERSHIP MODEL:
  * - Application creates and owns the I2C master bus
  * - Each sensor driver receives a bus handle and registers its device
  * - Each driver is responsible only for its own device registration
  * - Multiple sensors can share the same bus without conflict
- * 
+ *
  * THREAD SAFETY:
  * - The I2C master bus itself is thread-safe for multiple devices
  * - We keep a per-device mutex to protect the BH1750 measurement sequence
@@ -52,23 +52,22 @@ typedef struct bh1750_t {
 
 /**
  * Initialize a BH1750 sensor on an existing I2C master bus.
- * 
+ *
  * This function:
  * 1. Validates input parameters
  * 2. Allocates memory for the sensor instance
  * 3. Registers the device on the provided I2C bus
  * 4. Powers on and resets the sensor
  * 5. Creates a mutex for thread-safe single-sensor access
- * 
+ *
  * The application must have created and configured the I2C master bus before calling.
- * 
+ *
  * @param config Pointer to configuration struct (bus handle + I2C address)
  * @param out_handle Pointer to store the sensor handle
- * 
+ *
  * @return ESP_OK on success, ESP_ERR_* otherwise
  */
-esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle)
-{
+esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle) {
     /* Parameter validation - always check pointers first */
     if (config == NULL || out_handle == NULL) {
         ESP_LOGE(TAG, "Invalid parameters: config or out_handle is NULL");
@@ -86,8 +85,8 @@ esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle
 
     /* Validate I2C address is one of the two valid BH1750 addresses */
     if (config->i2c_address != BH1750_ADDR_LOW && config->i2c_address != BH1750_ADDR_HIGH) {
-        ESP_LOGE(TAG, "Invalid I2C address: 0x%02X (must be 0x%02X or 0x%02X)",
-                 config->i2c_address, BH1750_ADDR_LOW, BH1750_ADDR_HIGH);
+        ESP_LOGE(TAG, "Invalid I2C address: 0x%02X (must be 0x%02X or 0x%02X)", config->i2c_address,
+                 BH1750_ADDR_LOW, BH1750_ADDR_HIGH);
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -110,9 +109,9 @@ esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle
 
     /* Configure I2C device parameters */
     i2c_device_config_t dev_cfg = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,      /* 7-bit addressing */
-        .device_address = config->i2c_address,      /* BH1750 slave address */
-        .scl_speed_hz = 100000,                          /* Use bus default speed */
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7, /* 7-bit addressing */
+        .device_address = config->i2c_address, /* BH1750 slave address */
+        .scl_speed_hz = 100000,                /* Use bus default speed */
     };
 
     /* Register device on the provided I2C bus
@@ -132,7 +131,7 @@ esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle
      */
     uint8_t cmd_power_on = BH1750_CMD_POWER_ON;
     ret = i2c_master_transmit(sensor->i2c_dev, &cmd_power_on, 1, BH1750_I2C_TIMEOUT_MS);
-    
+
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to power on sensor: %s", esp_err_to_name(ret));
         i2c_master_bus_rm_device(sensor->i2c_dev);
@@ -149,7 +148,7 @@ esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle
      */
     uint8_t cmd_reset = BH1750_CMD_RESET;
     ret = i2c_master_transmit(sensor->i2c_dev, &cmd_reset, 1, BH1750_I2C_TIMEOUT_MS);
-    
+
     if (ret != ESP_OK) {
         ESP_LOGW(TAG, "Failed to reset sensor (non-critical): %s", esp_err_to_name(ret));
         /* Don't fail initialization if reset fails, sensor can still work */
@@ -157,16 +156,15 @@ esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle
 
     /* Return the opaque handle to the caller */
     *out_handle = (bh1750_handle_t)sensor;
-    
-    ESP_LOGI(TAG, "BH1750 initialized on shared I2C bus at address 0x%02X",
-             config->i2c_address);
-    
+
+    ESP_LOGI(TAG, "BH1750 initialized on shared I2C bus at address 0x%02X", config->i2c_address);
+
     return ESP_OK;
 }
 
 /**
  * Read illuminance (lux) value from the sensor.
- * 
+ *
  * This function:
  * 1. Validates the handle and output parameter
  * 2. Takes the mutex to ensure thread-safe access
@@ -175,19 +173,18 @@ esp_err_t bh1750_init(const bh1750_config_t *config, bh1750_handle_t *out_handle
  * 5. Reads 2 bytes of data
  * 6. Converts raw data to lux using sensor formula
  * 7. Returns the result via output parameter
- * 
+ *
  * Why use output parameter instead of return value?
  * - Return value is reserved for error codes (esp_err_t)
  * - This is a standard pattern in C APIs (POSIX style)
  * - Allows caller to distinguish between errors and invalid measurements
- * 
+ *
  * @param handle Sensor instance handle
  * @param lux_out Pointer to float where lux value will be written
- * 
+ *
  * @return ESP_OK on success, ESP_ERR_* otherwise
  */
-esp_err_t bh1750_read_lux(bh1750_handle_t handle, float *lux_out)
-{
+esp_err_t bh1750_read_lux(bh1750_handle_t handle, float *lux_out) {
     /* Parameter validation */
     if (handle == NULL || lux_out == NULL) {
         ESP_LOGE(TAG, "Invalid parameters: handle or lux_out is NULL");
@@ -256,18 +253,17 @@ esp_err_t bh1750_read_lux(bh1750_handle_t handle, float *lux_out)
 
 /**
  * Deinitialize and clean up a BH1750 sensor instance.
- * 
+ *
  * This function removes the device from the I2C bus and frees all resources
  * allocated by bh1750_init(). It does NOT delete the I2C master bus, which
  * remains under application control and may be shared by other sensors.
- * 
+ *
  * @param handle Sensor instance handle from bh1750_init()
- * 
+ *
  * @return ESP_OK on success
  *         ESP_ERR_INVALID_ARG if handle is NULL
  */
-esp_err_t bh1750_deinit(bh1750_handle_t handle)
-{
+esp_err_t bh1750_deinit(bh1750_handle_t handle) {
     if (handle == NULL) {
         ESP_LOGE(TAG, "Invalid handle: cannot deinitialize NULL sensor");
         return ESP_ERR_INVALID_ARG;

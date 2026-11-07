@@ -20,7 +20,7 @@
 
 typedef struct htu21d_t *htu21d_handle_t;
 
-//Resolution enum config
+// Resolution enum config
 typedef enum {
     HTU21D_RES_RH12_TEMP14 = 0x00,
     HTU21D_RES_RH8_TEMP12 = 0x01,
@@ -40,11 +40,7 @@ esp_err_t htu21d_init(const htu21d_config_t *config, htu21d_handle_t *out_handle
 // read RH and temp in one call
 esp_err_t htu21d_read(htu21d_handle_t handle, float *rh_out, float *temp_out);
 
-//read rh and temp individually ( NOT IMPLEMENTED )
-// esp_err_t htu21d_read_humidity(htu21d_handle_t handle, float *rh_out);
-// esp_err_t htu21d_read_temperature(htu21d_handle_t handle, float *temp_out);
-
-//cleanup
+// cleanup
 esp_err_t htu21d_deinit(htu21d_handle_t handle);
 
 #endif

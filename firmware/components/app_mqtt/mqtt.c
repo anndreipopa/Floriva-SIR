@@ -9,30 +9,27 @@ static const char *TAG = "MQTT";
 static esp_mqtt_client_handle_t s_client = NULL;
 static volatile bool s_connected = false;
 
-static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
-                                int32_t event_id, void *event_data)
-{
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id,
+                               void *event_data) {
     esp_mqtt_event_handle_t event = event_data;
     switch (event->event_id) {
-        case MQTT_EVENT_CONNECTED:
-            s_connected = true;
-            ESP_LOGI(TAG, "Connected to MQTT broker");
-            break;
-        case MQTT_EVENT_DISCONNECTED:
-            s_connected = false;
-            ESP_LOGW(TAG, "Disconnected from MQTT broker");
-            break;
-        case MQTT_EVENT_ERROR:
-            ESP_LOGE(TAG, "MQTT error event");
-            break;
-        default:
-            break;
+    case MQTT_EVENT_CONNECTED:
+        s_connected = true;
+        ESP_LOGI(TAG, "Connected to MQTT broker");
+        break;
+    case MQTT_EVENT_DISCONNECTED:
+        s_connected = false;
+        ESP_LOGW(TAG, "Disconnected from MQTT broker");
+        break;
+    case MQTT_EVENT_ERROR:
+        ESP_LOGE(TAG, "MQTT error event");
+        break;
+    default:
+        break;
     }
 }
-    
 
-esp_err_t app_mqtt_init(void)
-{
+esp_err_t app_mqtt_init(void) {
     const esp_mqtt_client_config_t mqtt_cfg = {
         .broker.address.uri = MQTT_BROKER_URI,
         .broker.verification.crt_bundle_attach = esp_crt_bundle_attach,
@@ -51,13 +48,11 @@ esp_err_t app_mqtt_init(void)
     return esp_mqtt_client_start(s_client);
 }
 
-bool app_mqtt_is_connected(void)
-{
+bool app_mqtt_is_connected(void) {
     return s_connected;
 }
 
-esp_err_t app_mqtt_publish_sensor_data(float temp, float rh, float lux)
-{
+esp_err_t app_mqtt_publish_sensor_data(float temp, float rh, float lux) {
     if (!s_connected) {
         ESP_LOGW(TAG, "Not connected, skipping publish");
         return ESP_ERR_INVALID_STATE;
@@ -65,16 +60,15 @@ esp_err_t app_mqtt_publish_sensor_data(float temp, float rh, float lux)
 
     char payload[128];
     int len = snprintf(payload, sizeof(payload),
-        "{\"temperature\":%.1f,\"humidity\":%.0f,\"lux\":%.0f}",
-        temp, rh, lux);
+                       "{\"temperature\":%.1f,\"humidity\":%.0f,\"lux\":%.0f}", temp, rh, lux);
 
     if (len < 0 || len >= sizeof(payload)) {
         ESP_LOGE(TAG, "Payload buffer too small or encoding error");
         return ESP_FAIL;
     }
 
-    int msg_id = esp_mqtt_client_publish(s_client, MQTT_TOPIC_SENSORS,
-                                          payload, 0, /*qos=*/1, /*retain=*/0);
+    int msg_id =
+        esp_mqtt_client_publish(s_client, MQTT_TOPIC_SENSORS, payload, 0, /*qos=*/1, /*retain=*/0);
     ESP_LOGI(TAG, "Published msg_id=%d payload=%s", msg_id, payload);
 
     return (msg_id >= 0) ? ESP_OK : ESP_FAIL;
