@@ -1,3 +1,5 @@
+import { GlassPanel } from './GlassPanel'
+
 function SkeletonBlock({ className = '' }: { className?: string }) {
   return (
     <div
@@ -6,10 +8,6 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
     />
   )
 }
-
-const glassPanel =
-  'rounded-2xl border border-white/85 bg-white/55 ' +
-  'backdrop-blur-md shadow-[0_14px_32px_-20px_rgba(20,110,105,0.35)]'
 
 export function EnvironmentPageSkeleton() {
   return (
@@ -35,8 +33,9 @@ export function EnvironmentPageSkeleton() {
           <section aria-label="Loading current conditions">
             <SkeletonBlock className="mb-2 h-6 w-40" />
 
-            <div
-              className={`${glassPanel} grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3`}
+            <GlassPanel
+              variant="skeleton"
+              className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
             >
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
@@ -51,15 +50,16 @@ export function EnvironmentPageSkeleton() {
                   <SkeletonBlock className="h-9 w-24" />
                 </div>
               ))}
-            </div>
+            </GlassPanel>
           </section>
 
           <section
             className="min-h-0"
             aria-label="Loading environment history"
           >
-            <div
-              className={`${glassPanel} flex h-full min-h-[240px] flex-col overflow-hidden`}
+            <GlassPanel
+              variant="skeleton"
+              className="flex h-full min-h-[240px] flex-col overflow-hidden"
             >
               <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/80 px-5 py-5 sm:px-6">
                 <div>
@@ -75,14 +75,15 @@ export function EnvironmentPageSkeleton() {
               </header>
 
               <div className="min-h-[240px] flex-1 bg-white/20" />
-            </div>
+            </GlassPanel>
           </section>
 
           <section aria-label="Loading daily summary">
             <SkeletonBlock className="mb-2 h-6 w-32" />
 
-            <div
-              className={`${glassPanel} grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3`}
+            <GlassPanel
+              variant="skeleton"
+              className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
             >
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
@@ -93,13 +94,15 @@ export function EnvironmentPageSkeleton() {
                   <SkeletonBlock className="h-7 w-20" />
                 </div>
               ))}
-            </div>
+            </GlassPanel>
           </section>
         </div>
 
         <aside className="space-y-4 lg:grid lg:min-h-0 lg:grid-rows-[auto_auto] lg:content-start lg:gap-3 lg:space-y-0">
-          <section
-            className={`${glassPanel} p-4`}
+          <GlassPanel
+            as="section"
+            variant="skeleton"
+            className="p-4"
             aria-label="Loading system status"
           >
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -118,10 +121,12 @@ export function EnvironmentPageSkeleton() {
                 </div>
               ))}
             </div>
-          </section>
+          </GlassPanel>
 
-          <section
-            className={`${glassPanel} p-4`}
+          <GlassPanel
+            as="section"
+            variant="skeleton"
+            className="p-4"
             aria-label="Loading weather forecast"
           >
             <SkeletonBlock className="mb-2 h-3 w-24" />
@@ -132,7 +137,7 @@ export function EnvironmentPageSkeleton() {
               <SkeletonBlock className="mt-2 h-4 w-full" />
               <SkeletonBlock className="mt-2 h-4 w-4/5" />
             </div>
-          </section>
+          </GlassPanel>
         </aside>
       </div>
 

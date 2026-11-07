@@ -1,15 +1,12 @@
 import { EnvironmentHistoryChart } from '../components/EnvironmentHistoryChart'
 import { EnvironmentPageSkeleton } from '../components/EnvironmentPageSkeleton'
+import { GlassPanel } from '../components/GlassPanel'
 import { ReadingMetric } from '../components/ReadingMetric'
 import { useEnvironmentReadings } from '../hooks/useEnvironmentReadings'
 import type { EnvironmentReading } from '../types/sensorReading'
 import { useWeather } from '../hooks/useWeather'
 import { WeatherForecastCard } from '../components/WeatherForecastCard'
 type Metric = 'temperature' | 'humidity' | 'lux'
-
-const glassPanel =
-  'rounded-2xl border border-white/85 bg-white/75 backdrop-blur-md ' +
-  'shadow-[0_14px_32px_-20px_rgba(20,110,105,0.45)]'
 
 function average(
   readings: EnvironmentReading[],
@@ -51,8 +48,8 @@ export function EnvironmentPage() {
   if (apiError) {
     return (
       <main className="w-full">
-        <div
-          className={`${glassPanel} border-accent/50 px-5 py-4`}
+        <GlassPanel
+          className="border-accent/50 px-5 py-4"
           role="alert"
         >
           <p className="m-0 font-bold text-ink">
@@ -62,7 +59,7 @@ export function EnvironmentPage() {
           <p className="m-0 mt-1 text-sm text-muted">
             {apiError}
           </p>
-        </div>
+        </GlassPanel>
       </main>
     )
   }
@@ -119,8 +116,8 @@ export function EnvironmentPage() {
             </div>
 
             {latest ? (
-              <div
-                className={`${glassPanel} grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3`}
+              <GlassPanel
+                className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
               >
                 <ReadingMetric
                   label="Temperature"
@@ -142,9 +139,9 @@ export function EnvironmentPage() {
                   unit="lux"
                   tone="light"
                 />
-              </div>
+              </GlassPanel>
             ) : (
-              <div className={`${glassPanel} p-4`}>
+              <GlassPanel className="p-4">
                 <p className="m-0 font-bold text-ink">
                   No live sensor reading is available.
                 </p>
@@ -153,7 +150,7 @@ export function EnvironmentPage() {
                   The dashboard will update when the robot sends another
                   reading.
                 </p>
-              </div>
+              </GlassPanel>
             )}
           </section>
 
@@ -174,8 +171,8 @@ export function EnvironmentPage() {
               </h2>
             </div>
 
-            <div
-              className={`${glassPanel} grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3`}
+            <GlassPanel
+              className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
             >
               <Summary
                 label="Average temperature"
@@ -197,13 +194,14 @@ export function EnvironmentPage() {
                 unit="lux"
                 valueClass="text-light"
               />
-            </div>
+            </GlassPanel>
           </section>
         </div>
 
         <aside className="space-y-4 lg:grid lg:min-h-0 lg:grid-rows-[auto_auto] lg:content-start lg:gap-3 lg:space-y-0">
-          <section
-            className={`${glassPanel} p-4`}
+          <GlassPanel
+            as="section"
+            className="p-4"
             aria-labelledby="status-heading"
           >
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -250,10 +248,11 @@ export function EnvironmentPage() {
               }
               healthy={history.length > 0}
             />
-          </section>
+          </GlassPanel>
 
-          <section
-            className={`${glassPanel} p-4`}
+          <GlassPanel
+            as="section"
+            className="p-4"
             aria-labelledby="weather-heading"
           >
             <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.1em] text-accent">
@@ -272,11 +271,11 @@ export function EnvironmentPage() {
               isLoading={isWeatherLoading}
               error={weatherError}
             />
-                      </section>
-                    </aside>
-                  </div>
-                </main>
-              )
+          </GlassPanel>
+        </aside>
+      </div>
+    </main>
+  )
 }
 
 function Summary({

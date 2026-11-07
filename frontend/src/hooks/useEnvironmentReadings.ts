@@ -32,7 +32,7 @@ export function useEnvironmentReadings(){
     const [isLoading, setIsLoading] = useState(true)
     const [apiError, setApiError] = useState<string | null>(null)
     const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('connecting')
-    const [now, setNow] = useState(Date.now())
+    const [now, setNow] = useState(() => Date.now())
     const [lastSensorReceivedAt, setLastSensorReceivedAt] =
     useState<number | null>(null)
 

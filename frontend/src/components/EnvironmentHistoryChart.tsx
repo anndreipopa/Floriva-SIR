@@ -28,21 +28,21 @@ const metrics: Record<MetricKey, MetricDefinition> = {
   temperature: {
     label: 'Temperature',
     unit: '°C',
-    color: '#ff6f61',
+    color: 'var(--color-temperature)',
     gradientId: 'temperature-area',
     axis: 'ambient',
   },
   humidity: {
     label: 'Humidity',
     unit: '%',
-    color: '#00bfd3',
+    color: 'var(--color-humidity)',
     gradientId: 'humidity-area',
     axis: 'ambient',
   },
   lux: {
     label: 'Light',
     unit: 'lux',
-    color: '#a7d83c',
+    color: 'var(--color-light)',
     gradientId: 'light-area',
     axis: 'light',
   },
@@ -247,7 +247,7 @@ export function EnvironmentHistoryChart({
                 minTickGap={45}
                 tickMargin={14}
                 tick={{
-                  fill: '#628083',
+                  fill: 'var(--color-muted)',
                   fontSize: 12,
                   fontWeight: 700,
                 }}
@@ -262,7 +262,7 @@ export function EnvironmentHistoryChart({
                 tickMargin={10}
                 width={40}
                 tick={{
-                  fill: '#628083',
+                  fill: 'var(--color-muted)',
                   fontSize: 12,
                   fontWeight: 700,
                 }}
@@ -278,7 +278,7 @@ export function EnvironmentHistoryChart({
                 width={48}
                 hide={!visibleMetrics.lux}
                 tick={{
-                  fill: '#628083',
+                  fill: 'var(--color-muted)',
                   fontSize: 12,
                   fontWeight: 700,
                 }}
@@ -286,7 +286,7 @@ export function EnvironmentHistoryChart({
 
               <Tooltip
                 cursor={{
-                  stroke: '#25c7d8',
+                  stroke: 'var(--color-cyan)',
                   strokeWidth: 24,
                   strokeOpacity: 0.14,
                 }}
@@ -313,7 +313,7 @@ export function EnvironmentHistoryChart({
                 }}
                 labelStyle={{
                   marginBottom: '8px',
-                  color: '#628083',
+                  color: 'var(--color-muted)',
                   fontSize: '12px',
                   fontWeight: 700,
                 }}
