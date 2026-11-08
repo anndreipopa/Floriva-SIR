@@ -9,136 +9,92 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
   )
 }
 
+/** Mirrors the Environment page layout (one screen on desktop) while data loads. */
 export function EnvironmentPageSkeleton() {
   return (
     <main
-      className="w-full lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-3"
+      className="grid w-full gap-3 lg:h-full lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_370px]"
       aria-busy="true"
       aria-label="Loading environment data"
     >
-      <header className="mb-4 flex flex-wrap items-end justify-between gap-3 lg:mb-0">
-        <div>
-          <SkeletonBlock className="h-9 w-48" />
-          <SkeletonBlock className="mt-2 h-4 w-80 max-w-full" />
-        </div>
+      <div className="flex min-w-0 flex-col gap-3 lg:min-h-0">
+        <GlassPanel
+          variant="skeleton"
+          className="flex h-[260px] flex-col justify-between p-5 sm:h-[300px] sm:p-6 lg:h-auto lg:min-h-0 lg:flex-[1_1_0] lg:p-7"
+        >
+          <SkeletonBlock className="h-3 w-52" />
+          <div>
+            <SkeletonBlock className="h-16 w-52" />
+            <SkeletonBlock className="mt-3 h-5 w-72 max-w-full" />
+          </div>
+        </GlassPanel>
 
-        <div className="rounded-xl border border-white/85 bg-white/45 px-3 py-2">
-          <SkeletonBlock className="mb-2 h-3 w-24" />
-          <SkeletonBlock className="h-4 w-40" />
-        </div>
-      </header>
-
-      <div className="grid min-h-0 items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0 space-y-5 lg:grid lg:min-h-0 lg:grid-rows-[auto_minmax(240px,1fr)_auto] lg:gap-3 lg:space-y-0">
-          <section aria-label="Loading current conditions">
-            <SkeletonBlock className="mb-2 h-6 w-40" />
-
-            <GlassPanel
-              variant="skeleton"
-              className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
-            >
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  className="min-w-0 bg-white/35 px-4 py-5"
-                  key={index}
-                >
-                  <div className="mb-4 flex items-center gap-2">
-                    <SkeletonBlock className="h-8 w-8 rounded-lg" />
-                    <SkeletonBlock className="h-3 w-24" />
-                  </div>
-
-                  <SkeletonBlock className="h-9 w-24" />
+        <div className="grid gap-3 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <GlassPanel variant="skeleton" className="p-4" key={index}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <SkeletonBlock className="h-8 w-8" />
+                  <SkeletonBlock className="h-3 w-20" />
                 </div>
-              ))}
-            </GlassPanel>
-          </section>
-
-          <section
-            className="min-h-0"
-            aria-label="Loading environment history"
-          >
-            <GlassPanel
-              variant="skeleton"
-              className="flex h-full min-h-[240px] flex-col overflow-hidden"
-            >
-              <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/80 px-5 py-5 sm:px-6">
-                <div>
-                  <SkeletonBlock className="h-5 w-28" />
-                  <SkeletonBlock className="mt-2 h-4 w-56 max-w-full" />
-                </div>
-
-                <div className="flex flex-wrap gap-1 rounded-xl border border-white/80 bg-cyan-soft/50 p-1">
-                  <SkeletonBlock className="h-9 w-24 rounded-lg" />
-                  <SkeletonBlock className="h-9 w-20 rounded-lg" />
-                  <SkeletonBlock className="h-9 w-16 rounded-lg" />
-                </div>
-              </header>
-
-              <div className="min-h-[240px] flex-1 bg-white/20" />
-            </GlassPanel>
-          </section>
-
-          <section aria-label="Loading daily summary">
-            <SkeletonBlock className="mb-2 h-6 w-32" />
-
-            <GlassPanel
-              variant="skeleton"
-              className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
-            >
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  className="bg-white/35 px-4 py-3"
-                  key={index}
-                >
-                  <SkeletonBlock className="mb-2 h-3 w-32" />
-                  <SkeletonBlock className="h-7 w-20" />
-                </div>
-              ))}
-            </GlassPanel>
-          </section>
-        </div>
-
-        <aside className="space-y-4 lg:grid lg:min-h-0 lg:grid-rows-[auto_auto] lg:content-start lg:gap-3 lg:space-y-0">
-          <GlassPanel
-            as="section"
-            variant="skeleton"
-            className="p-4"
-            aria-label="Loading system status"
-          >
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <SkeletonBlock className="h-6 w-32" />
-              <SkeletonBlock className="h-3 w-3 rounded-full" />
-            </div>
-
-            <div>
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  className="flex items-center justify-between gap-3 border-t border-border/50 py-2 first:border-t-0 first:pt-0"
-                  key={index}
-                >
-                  <SkeletonBlock className="h-4 w-32" />
-                  <SkeletonBlock className="h-4 w-24" />
-                </div>
-              ))}
-            </div>
-          </GlassPanel>
-
-          <GlassPanel
-            as="section"
-            variant="skeleton"
-            className="p-4"
-            aria-label="Loading weather forecast"
-          >
-            <SkeletonBlock className="mb-2 h-3 w-24" />
-            <SkeletonBlock className="h-6 w-40" />
-
-            <div className="mt-3 rounded-xl border border-cyan/20 bg-cyan-soft/40 p-3">
-              <SkeletonBlock className="h-5 w-28" />
+                <SkeletonBlock className="h-5 w-16" />
+              </div>
+              <SkeletonBlock className="mt-3 h-8 w-24" />
+              <SkeletonBlock className="mt-4 h-2.5 w-full rounded-full" />
               <SkeletonBlock className="mt-2 h-4 w-full" />
-              <SkeletonBlock className="mt-2 h-4 w-4/5" />
+              <SkeletonBlock className="mt-3 h-4 w-full" />
+            </GlassPanel>
+          ))}
+        </div>
+
+        <GlassPanel
+          variant="skeleton"
+          className="flex h-[380px] flex-col overflow-hidden lg:h-auto lg:min-h-[240px] lg:flex-[1.35_1_0]"
+        >
+          <header className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4">
+            <div className="flex items-center gap-2">
+              <SkeletonBlock className="h-8 w-8" />
+              <div>
+                <SkeletonBlock className="h-4 w-20" />
+                <SkeletonBlock className="mt-1 h-3 w-36" />
+              </div>
             </div>
-          </GlassPanel>
-        </aside>
+
+            <div className="flex gap-1.5">
+              <SkeletonBlock className="h-8 w-28" />
+              <SkeletonBlock className="h-8 w-24" />
+              <SkeletonBlock className="h-8 w-16" />
+            </div>
+          </header>
+
+          <div className="flex-1 bg-white/20" />
+        </GlassPanel>
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-3 lg:min-h-0">
+        <GlassPanel variant="skeleton" className="flex flex-col overflow-hidden lg:flex-1">
+          <div className="min-h-[150px] flex-1 bg-gradient-to-b from-sky-day/40 to-white/30 p-4">
+            <SkeletonBlock className="h-3 w-32" />
+            <SkeletonBlock className="mt-3 h-12 w-20" />
+            <SkeletonBlock className="mt-2 h-4 w-36" />
+          </div>
+          <div className="space-y-2 p-4">
+            <SkeletonBlock className="h-9 w-full" />
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonBlock className="h-7 w-full" key={index} />
+            ))}
+          </div>
+        </GlassPanel>
+
+        <GlassPanel variant="skeleton" className="p-4">
+          <SkeletonBlock className="mb-3 h-6 w-36" />
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div className="flex items-center justify-between py-1.5" key={index}>
+              <SkeletonBlock className="h-4 w-24" />
+              <SkeletonBlock className="h-6 w-16" />
+            </div>
+          ))}
+        </GlassPanel>
       </div>
 
       <span className="sr-only">Loading environment data...</span>

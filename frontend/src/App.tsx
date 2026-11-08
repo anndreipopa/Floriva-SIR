@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
 import { EnvironmentPage } from './pages/EnvironmentPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             element={<Navigate to="/environment" replace />}
           />
           <Route path="/environment" element={<EnvironmentPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

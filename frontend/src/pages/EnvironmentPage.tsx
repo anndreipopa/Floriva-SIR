@@ -1,12 +1,40 @@
+import type { CSSProperties, ReactNode } from 'react'
+import { ConditionsHero } from '../components/ConditionsHero'
 import { EnvironmentHistoryChart } from '../components/EnvironmentHistoryChart'
 import { EnvironmentPageSkeleton } from '../components/EnvironmentPageSkeleton'
 import { GlassPanel } from '../components/GlassPanel'
-import { ReadingMetric } from '../components/ReadingMetric'
+import { SystemStatusCard } from '../components/SystemStatusCard'
+import { HumidityInstrument } from '../components/instruments/HumidityInstrument'
+import { LightInstrument } from '../components/instruments/LightInstrument'
+import { TemperatureInstrument } from '../components/instruments/TemperatureInstrument'
 import { useEnvironmentReadings } from '../hooks/useEnvironmentReadings'
+import { isReadingFresh } from '../lib/conditions'
 import type { EnvironmentReading } from '../types/sensorReading'
 import { useWeather } from '../hooks/useWeather'
 import { WeatherForecastCard } from '../components/WeatherForecastCard'
 type Metric = 'temperature' | 'humidity' | 'lux'
+
+/** Delay between the entrance animations of consecutive blocks. */
+const STAGGER_MS = 90
+
+/** Fades a block in, a little after the one before it. */
+function Reveal({
+  order,
+  className = '',
+  children,
+}: {
+  order: number
+  className?: string
+  children: ReactNode
+}) {
+  const style: CSSProperties = { animationDelay: `${order * STAGGER_MS}ms` }
+
+  return (
+    <div className={`animate-rise-in ${className}`} style={style}>
+      {children}
+    </div>
+  )
+}
 
 function average(
   readings: EnvironmentReading[],
@@ -24,6 +52,12 @@ function average(
   return total / readings.length
 }
 
+/**
+ * Desktop: one screen, no scrolling.
+ *   left  = hero (flex) / instruments (fixed) / chart (flex)
+ *   right = weather / system status
+ * Mobile: the same blocks stacked in reading order.
+ */
 export function EnvironmentPage() {
   const {
     latest,
@@ -35,7 +69,7 @@ export function EnvironmentPage() {
     now,
   } = useEnvironmentReadings()
 
-    const {
+  const {
     weather,
     isLoading: isWeatherLoading,
     error: weatherError,
@@ -69,273 +103,65 @@ export function EnvironmentPage() {
       ? null
       : now - lastSensorReceivedAt
 
-  const isFresh =
-    readingAgeMs !== null &&
-    readingAgeMs >= 0 &&
-    readingAgeMs < 35_000
+  const isFresh = isReadingFresh(readingAgeMs)
+
+  const temperatures = history.map((reading) => reading.temperature)
+  const minTemperature = temperatures.length > 0 ? Math.min(...temperatures) : null
+  const maxTemperature = temperatures.length > 0 ? Math.max(...temperatures) : null
 
   return (
-    <main className="w-full lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-3">
-      <header className="mb-4 flex flex-wrap items-end justify-between gap-3 lg:mb-0">
-        <div>
-          <h1 className="m-0 text-3xl font-extrabold tracking-tight text-ink">
-            Environment
-          </h1>
-
-          <p className="m-0 mt-1 text-sm text-muted">
-            A live view of the conditions around your plants.
-          </p>
-        </div>
+    <main className="grid w-full gap-3 lg:h-full lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_370px]">
+      <div className="flex min-w-0 flex-col gap-3 lg:min-h-0">
+        <Reveal order={0} className="lg:min-h-0 lg:flex-[1_1_0]">
+          <ConditionsHero latest={latest} />
+        </Reveal>
 
         {latest && (
-          <div className="rounded-xl border border-white/85 bg-white/65 px-3 py-2 backdrop-blur-sm">
-            <p className="mb-0.5 text-xs font-extrabold uppercase tracking-[0.1em] text-muted">
-              Latest reading
-            </p>
-
-            <time
-              className="text-sm font-bold text-ink"
-              dateTime={latest.receivedAtUtc}
-            >
-              {new Date(latest.receivedAtUtc).toLocaleString()}
-            </time>
-          </div>
-        )}
-      </header>
-
-      <div className="grid min-h-0 items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0 space-y-5 lg:grid lg:min-h-0 lg:grid-rows-[auto_minmax(240px,1fr)_auto] lg:gap-3 lg:space-y-0">
           <section aria-labelledby="conditions-heading">
-            <div className="mb-2">
-              <h2
-                id="conditions-heading"
-                className="m-0 text-lg font-extrabold text-ink"
-              >
-                Current conditions
-              </h2>
-            </div>
-
-            {latest ? (
-              <GlassPanel
-                className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
-              >
-                <ReadingMetric
-                  label="Temperature"
-                  value={latest.temperature}
-                  unit="°C"
-                  tone="temperature"
-                />
-
-                <ReadingMetric
-                  label="Humidity"
-                  value={latest.humidity}
-                  unit="%"
-                  tone="humidity"
-                />
-
-                <ReadingMetric
-                  label="Illuminance"
-                  value={latest.lux}
-                  unit="lux"
-                  tone="light"
-                />
-              </GlassPanel>
-            ) : (
-              <GlassPanel className="p-4">
-                <p className="m-0 font-bold text-ink">
-                  No live sensor reading is available.
-                </p>
-
-                <p className="m-0 mt-1 text-sm text-muted">
-                  The dashboard will update when the robot sends another
-                  reading.
-                </p>
-              </GlassPanel>
-            )}
-          </section>
-
-          <section
-            className="min-h-0"
-            aria-label="Environment history"
-          >
-            <EnvironmentHistoryChart readings={history} />
-          </section>
-
-          <section aria-labelledby="summary-heading">
-            <div className="mb-2">
-              <h2
-                id="summary-heading"
-                className="m-0 text-lg font-extrabold text-ink"
-              >
-                Daily summary
-              </h2>
-            </div>
-
-            <GlassPanel
-              className="grid overflow-hidden gap-px bg-white/70 sm:grid-cols-3"
-            >
-              <Summary
-                label="Average temperature"
-                value={average(history, 'temperature')}
-                unit="°C"
-                valueClass="text-temperature"
-              />
-
-              <Summary
-                label="Average humidity"
-                value={average(history, 'humidity')}
-                unit="%"
-                valueClass="text-humidity"
-              />
-
-              <Summary
-                label="Average light"
-                value={average(history, 'lux')}
-                unit="lux"
-                valueClass="text-light"
-              />
-            </GlassPanel>
-          </section>
-        </div>
-
-        <aside className="space-y-4 lg:grid lg:min-h-0 lg:grid-rows-[auto_auto] lg:content-start lg:gap-3 lg:space-y-0">
-          <GlassPanel
-            as="section"
-            className="p-4"
-            aria-labelledby="status-heading"
-          >
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h2
-                id="status-heading"
-                className="m-0 text-lg font-extrabold text-ink"
-              >
-                System status
-              </h2>
-
-              <span
-                className={`h-3 w-3 rounded-full ${
-                  realtimeStatus === 'connected'
-                    ? 'animate-pulse bg-success'
-                    : 'bg-warning'
-                }`}
-              />
-            </div>
-
-            <StatusRow
-              label="Realtime connection"
-              status={realtimeStatus}
-              healthy={realtimeStatus === 'connected'}
-            />
-
-            <StatusRow
-              label="Ambient sensors"
-              status={
-                latest === null
-                  ? 'No data'
-                  : isFresh
-                    ? 'Receiving data'
-                    : 'Data is stale'
-              }
-              healthy={isFresh}
-            />
-
-            <StatusRow
-              label="Stored readings"
-              status={
-                history.length > 0
-                  ? `${history.length} available`
-                  : 'No history'
-              }
-              healthy={history.length > 0}
-            />
-          </GlassPanel>
-
-          <GlassPanel
-            as="section"
-            className="p-4"
-            aria-labelledby="weather-heading"
-          >
-            <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.1em] text-accent">
-              Local area
-            </p>
-
-            <h2
-              id="weather-heading"
-              className="m-0 text-lg font-extrabold text-ink"
-            >
-              Weather forecast
+            <h2 id="conditions-heading" className="sr-only">
+              Current conditions
             </h2>
 
-            <WeatherForecastCard
-              weather={weather}
-              isLoading={isWeatherLoading}
-              error={weatherError}
-            />
-          </GlassPanel>
-        </aside>
-      </div>
-    </main>
-  )
-}
-
-function Summary({
-  label,
-  value,
-  unit,
-  valueClass,
-}: {
-  label: string
-  value: number | null
-  unit: string
-  valueClass: string
-}) {
-  return (
-    <div className="bg-white/65 px-4 py-3 backdrop-blur-sm">
-      <p className="mb-1 text-xs font-bold text-muted">
-        {label}
-      </p>
-
-      <p className={`m-0 text-2xl font-extrabold ${valueClass}`}>
-        {value === null ? '—' : value.toFixed(1)}
-
-        {value !== null && (
-          <span className="ml-1 text-sm font-bold text-muted">
-            {unit}
-          </span>
+            <div className="grid gap-3 md:grid-cols-3">
+              <Reveal order={1}>
+                <TemperatureInstrument
+                  value={latest.temperature}
+                  min={minTemperature}
+                  max={maxTemperature}
+                  average={average(history, 'temperature')}
+                />
+              </Reveal>
+              <Reveal order={2}>
+                <HumidityInstrument value={latest.humidity} average={average(history, 'humidity')} />
+              </Reveal>
+              <Reveal order={3}>
+                <LightInstrument value={latest.lux} average={average(history, 'lux')} />
+              </Reveal>
+            </div>
+          </section>
         )}
-      </p>
-    </div>
-  )
-}
 
-function StatusRow({
-  label,
-  status,
-  healthy,
-}: {
-  label: string
-  status: string
-  healthy: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-t border-border/70 py-2 first:border-t-0 first:pt-0">
-      <span className="text-sm font-semibold text-muted">
-        {label}
-      </span>
+        <Reveal order={4} className="lg:min-h-[240px] lg:flex-[1.35_1_0]">
+          <EnvironmentHistoryChart readings={history} />
+        </Reveal>
+      </div>
 
-      <span
-        className={`flex items-center gap-2 whitespace-nowrap text-right text-sm font-extrabold uppercase ${
-          healthy ? 'text-success' : 'text-warning'
-        }`}
-      >
-        <span
-          className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-            healthy ? 'bg-success' : 'bg-warning'
-          }`}
+      <Reveal order={5} className="flex min-w-0 flex-col gap-3 lg:min-h-0">
+        <WeatherForecastCard
+          weather={weather}
+          isLoading={isWeatherLoading}
+          error={weatherError}
+          indoorTemperature={latest?.temperature ?? null}
+          className="lg:min-h-0 lg:flex-1"
         />
 
-        {status}
-      </span>
-    </div>
+        <SystemStatusCard
+          realtimeStatus={realtimeStatus}
+          latestReceivedAtUtc={latest?.receivedAtUtc ?? null}
+          isFresh={isFresh}
+          storedReadings={history.length}
+        />
+      </Reveal>
+    </main>
   )
 }

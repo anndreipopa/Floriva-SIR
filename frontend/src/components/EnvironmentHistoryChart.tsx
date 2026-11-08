@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChartLineUp } from '@phosphor-icons/react'
 import {
   Area,
   CartesianGrid,
@@ -8,7 +9,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import type { TooltipContentProps } from 'recharts'
 import type { EnvironmentReading } from '../types/sensorReading'
+import { GlassPanel } from './GlassPanel'
 
 interface EnvironmentHistoryChartProps {
   readings: EnvironmentReading[]
@@ -20,7 +23,9 @@ interface MetricDefinition {
   label: string
   unit: string
   color: string
-  gradientId: string
+  /** Classes for the toggle chip while the series is shown. */
+  chip: string
+  /** Temperature and humidity share the 0–100 axis; light has its own. */
   axis: 'ambient' | 'light'
 }
 
@@ -29,43 +34,116 @@ const metrics: Record<MetricKey, MetricDefinition> = {
     label: 'Temperature',
     unit: '°C',
     color: 'var(--color-temperature)',
-    gradientId: 'temperature-area',
+    chip: 'bg-temperature/15 text-temperature',
     axis: 'ambient',
   },
   humidity: {
     label: 'Humidity',
     unit: '%',
     color: 'var(--color-humidity)',
-    gradientId: 'humidity-area',
+    chip: 'bg-humidity/15 text-humidity',
     axis: 'ambient',
   },
   lux: {
     label: 'Light',
     unit: 'lux',
     color: 'var(--color-light)',
-    gradientId: 'light-area',
+    chip: 'bg-light/15 text-light-ink',
     axis: 'light',
   },
 }
 
+const metricKeys = Object.keys(metrics) as MetricKey[]
+
 const defaultVisibleMetrics: Record<MetricKey, boolean> = {
   temperature: true,
   humidity: true,
-  lux: false,
+  lux: true,
 }
 
-export function EnvironmentHistoryChart({
-  readings,
-}: EnvironmentHistoryChartProps) {
-  const [visibleMetrics, setVisibleMetrics] =
-    useState<Record<MetricKey, boolean>>(
-      defaultVisibleMetrics,
-    )
+/** Left axis: °C and % both fit comfortably in 0–100 for an indoor room. */
+const AMBIENT_TICKS = [0, 25, 50, 75, 100]
+/** Right axis is split into the same number of steps so grid lines coincide. */
+const LIGHT_STEPS = AMBIENT_TICKS.length - 1
 
-  const chartData = readings.map((reading) => ({
+const axisTick = { fontSize: 12, fontWeight: 700 }
+
+interface ChartPoint extends EnvironmentReading {
+  timestamp: number
+}
+
+/**
+ * Right-axis ticks from 0 to the highest light reading, in as many equal
+ * steps as the left axis. Rounded up to a whole step so labels stay tidy.
+ */
+function lightScale(maxLux: number) {
+  const step = Math.max(1, Math.ceil(maxLux / LIGHT_STEPS))
+  const ticks = Array.from({ length: LIGHT_STEPS + 1 }, (_, index) => index * step)
+
+  return { domain: [0, ticks[LIGHT_STEPS]] as [number, number], ticks }
+}
+
+function formatLux(value: number) {
+  return value >= 1000 ? `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k` : `${value}`
+}
+
+function formatTime(timestamp: number) {
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+/** One tooltip for all visible series, read straight from the hovered reading. */
+function TrendTooltip({
+  active,
+  payload,
+  visibleMetrics,
+}: Partial<TooltipContentProps<number, string>> & {
+  visibleMetrics: Record<MetricKey, boolean>
+}) {
+  const point = payload?.[0]?.payload as ChartPoint | undefined
+
+  if (!active || !point) {
+    return null
+  }
+
+  return (
+    <div className="rounded-xl border border-white/95 bg-white/92 px-3 py-2.5 shadow-[0_14px_30px_-16px_rgba(20,110,105,0.45)] backdrop-blur-md">
+      <p className="m-0 mb-1.5 text-xs font-bold text-muted">
+        {new Date(point.timestamp).toLocaleString()}
+      </p>
+
+      {metricKeys
+        .filter((metric) => visibleMetrics[metric])
+        .map((metric) => (
+          <p key={metric} className="m-0 flex items-center gap-2 py-px text-[13px] font-extrabold text-ink">
+            <span
+              className="h-[3px] w-3 rounded-full"
+              style={{ backgroundColor: metrics[metric].color }}
+              aria-hidden="true"
+            />
+            {metrics[metric].label}
+            <span className="ml-auto pl-3 tabular">
+              {point[metric].toLocaleString()} {metrics[metric].unit}
+            </span>
+          </p>
+        ))}
+    </div>
+  )
+}
+
+export function EnvironmentHistoryChart({ readings }: EnvironmentHistoryChartProps) {
+  const [visibleMetrics, setVisibleMetrics] =
+    useState<Record<MetricKey, boolean>>(defaultVisibleMetrics)
+
+  const chartData: ChartPoint[] = readings.map((reading) => ({
     ...reading,
     timestamp: new Date(reading.receivedAtUtc).getTime(),
   }))
+
+  const light = lightScale(Math.max(0, ...readings.map((reading) => reading.lux)))
+  const isSinglePoint = readings.length === 1
 
   function toggleMetric(metric: MetricKey) {
     setVisibleMetrics((current) => ({
@@ -74,31 +152,29 @@ export function EnvironmentHistoryChart({
     }))
   }
 
-  function formatTime(timestamp: number) {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/85 bg-white/75 backdrop-blur-md shadow-[0_14px_32px_-20px_rgba(20,110,105,0.45)]">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/80 px-5 py-5 sm:px-6">
-        <div>
-          <h3 className="m-0 text-base font-extrabold text-ink">
-            Sensor history
-          </h3>
-
-          <p className="m-0 mt-1 text-sm font-medium text-muted">
-            Persisted readings from the last 24 hours
-          </p>
+    <GlassPanel
+      as="section"
+      className="flex h-full min-h-0 flex-col overflow-hidden"
+      aria-labelledby="trends-heading"
+    >
+      <header className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4">
+        <div className="flex items-center gap-2">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-forest/10 text-forest">
+            <ChartLineUp size={22} weight="duotone" aria-hidden="true" />
+          </span>
+          <div>
+            <h2 id="trends-heading" className="m-0 text-sm font-bold text-ink">
+              Trends
+            </h2>
+            <p className="m-0 text-xs font-semibold text-muted">
+              Last 24 hours · {readings.length} {readings.length === 1 ? 'reading' : 'readings'}
+            </p>
+          </div>
         </div>
 
-        <div
-          className="flex flex-wrap gap-1 rounded-xl border border-white/80 bg-cyan-soft/70 p-1 backdrop-blur-sm"
-          aria-label="Visible chart values"
-        >
-          {(Object.keys(metrics) as MetricKey[]).map((metric) => {
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Visible chart values">
+          {metricKeys.map((metric) => {
             const definition = metrics[metric]
             const isVisible = visibleMetrics[metric]
 
@@ -108,24 +184,15 @@ export function EnvironmentHistoryChart({
                 type="button"
                 aria-pressed={isVisible}
                 onClick={() => toggleMetric(metric)}
-                className={`
-                  flex min-h-9 items-center gap-2 rounded-lg px-3
-                  text-sm font-extrabold transition-colors
-                  ${
-                    isVisible
-                      ? 'bg-white/95 text-ink shadow-[0_3px_10px_-5px_rgba(20,110,105,0.45)]'
-                      : 'text-muted hover:bg-white/60 hover:text-ink'
-                  }
-                `}
+                className={`flex min-h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-extrabold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-forest/50 ${
+                  isVisible ? definition.chip : 'bg-white/50 text-muted hover:bg-white/80 hover:text-ink'
+                }`}
               >
                 <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{
-                    backgroundColor: definition.color,
-                    opacity: isVisible ? 1 : 0.35,
-                  }}
+                  className="h-[3px] w-3.5 rounded-full"
+                  style={{ backgroundColor: definition.color, opacity: isVisible ? 1 : 0.4 }}
+                  aria-hidden="true"
                 />
-
                 {definition.label}
               </button>
             )
@@ -134,269 +201,102 @@ export function EnvironmentHistoryChart({
       </header>
 
       {readings.length === 0 ? (
-        <div className="grid h-[360px] place-items-center px-6 text-center sm:h-[420px]">
+        <div className="grid h-[280px] place-items-center px-6 text-center lg:h-auto lg:min-h-0 lg:flex-1">
           <div>
-            <p className="mb-1 font-extrabold text-ink">
-              No historical readings
-            </p>
-
-            <p className="m-0 text-sm text-muted">
-              Persisted sensor values will appear here.
-            </p>
+            <p className="mb-1 font-extrabold text-ink">No historical readings</p>
+            <p className="m-0 text-sm text-muted">Persisted sensor values will appear here.</p>
           </div>
         </div>
       ) : (
-        <div className="h-[320px] min-h-[240px] w-full px-2 pb-3 pt-4 sm:h-[360px] sm:px-4 lg:h-auto lg:min-h-0 lg:flex-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={chartData}
-              margin={{
-                top: 18,
-                right: 12,
-                bottom: 8,
-                left: 4,
-              }}
-            >
-              <defs>
-                <linearGradient
-                  id={metrics.temperature.gradientId}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor={metrics.temperature.color}
-                    stopOpacity={0.42}
-                  />
-                  <stop
-                    offset="58%"
-                    stopColor={metrics.temperature.color}
-                    stopOpacity={0.16}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor={metrics.temperature.color}
-                    stopOpacity={0.015}
-                  />
-                </linearGradient>
+        // The absolute inner box gives Recharts a definite size to measure.
+        <div className="relative h-[280px] shrink-0 sm:h-[320px] lg:h-auto lg:min-h-0 lg:flex-1">
+          <div className="absolute inset-x-2 bottom-2 top-3 sm:inset-x-3">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={chartData} margin={{ top: 8, right: 4, bottom: 0, left: 4 }}>
+                <defs>
+                  {metricKeys.map((metric) => (
+                    <linearGradient key={metric} id={`trend-${metric}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={metrics[metric].color} stopOpacity={0.2} />
+                      <stop offset="100%" stopColor={metrics[metric].color} stopOpacity={0} />
+                    </linearGradient>
+                  ))}
+                </defs>
 
-                <linearGradient
-                  id={metrics.humidity.gradientId}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor={metrics.humidity.color}
-                    stopOpacity={0.42}
-                  />
-                  <stop
-                    offset="58%"
-                    stopColor={metrics.humidity.color}
-                    stopOpacity={0.16}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor={metrics.humidity.color}
-                    stopOpacity={0.015}
-                  />
-                </linearGradient>
-
-                <linearGradient
-                  id={metrics.lux.gradientId}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor={metrics.lux.color}
-                    stopOpacity={0.42}
-                  />
-                  <stop
-                    offset="58%"
-                    stopColor={metrics.lux.color}
-                    stopOpacity={0.16}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor={metrics.lux.color}
-                    stopOpacity={0.015}
-                  />
-                </linearGradient>
-              </defs>
-
-              <CartesianGrid
-                vertical={false}
-                stroke="#c9e1e1"
-                strokeWidth={1}
-              />
-
-              <XAxis
-                dataKey="timestamp"
-                type="number"
-                scale="time"
-                domain={['dataMin', 'dataMax']}
-                axisLine={false}
-                tickLine={false}
-                minTickGap={45}
-                tickMargin={14}
-                tick={{
-                  fill: 'var(--color-muted)',
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-                tickFormatter={formatTime}
-              />
-
-              <YAxis
-                yAxisId="ambient"
-                domain={[0, 'auto']}
-                axisLine={false}
-                tickLine={false}
-                tickMargin={10}
-                width={40}
-                tick={{
-                  fill: 'var(--color-muted)',
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-              />
-
-              <YAxis
-                yAxisId="light"
-                domain={[0, 'auto']}
-                orientation="right"
-                axisLine={false}
-                tickLine={false}
-                tickMargin={10}
-                width={48}
-                hide={!visibleMetrics.lux}
-                tick={{
-                  fill: 'var(--color-muted)',
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-              />
-
-              <Tooltip
-                cursor={{
-                  stroke: 'var(--color-cyan)',
-                  strokeWidth: 24,
-                  strokeOpacity: 0.14,
-                }}
-                labelFormatter={(timestamp) =>
-                  new Date(Number(timestamp)).toLocaleString()
-                }
-                formatter={(value, name) => {
-                  const metric = name as MetricKey
-                  const definition = metrics[metric]
-
-                  return [
-                    `${Number(value).toLocaleString()} ${definition.unit}`,
-                    definition.label,
-                  ]
-                }}
-                contentStyle={{
-                  padding: '12px 14px',
-                  border: '1px solid rgba(255, 255, 255, 0.95)',
-                  borderRadius: '12px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                  boxShadow:
-                    '0 14px 30px -16px rgba(20, 110, 105, 0.45)',
-                  backdropFilter: 'blur(12px)',
-                }}
-                labelStyle={{
-                  marginBottom: '8px',
-                  color: 'var(--color-muted)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                }}
-                itemStyle={{
-                  paddingTop: '2px',
-                  paddingBottom: '2px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                }}
-              />
-
-              {visibleMetrics.temperature && (
-                <Area
-                  type="linear"
-                  yAxisId={metrics.temperature.axis}
-                  dataKey="temperature"
-                  name="temperature"
-                  baseValue={0}
-                  stroke={metrics.temperature.color}
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill={`url(#${metrics.temperature.gradientId})`}
-                  dot={readings.length === 1}
-                  activeDot={{
-                    r: 5,
-                    fill: metrics.temperature.color,
-                    stroke: '#ffffff',
-                    strokeWidth: 3,
-                  }}
-                  animationDuration={650}
+                <CartesianGrid
+                  vertical={false}
+                  yAxisId="ambient"
+                  stroke="var(--color-grid)"
+                  strokeDasharray="3 6"
                 />
-              )}
 
-              {visibleMetrics.humidity && (
-                <Area
-                  type="linear"
-                  yAxisId={metrics.humidity.axis}
-                  dataKey="humidity"
-                  name="humidity"
-                  baseValue={0}
-                  stroke={metrics.humidity.color}
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill={`url(#${metrics.humidity.gradientId})`}
-                  dot={readings.length === 1}
-                  activeDot={{
-                    r: 5,
-                    fill: metrics.humidity.color,
-                    stroke: '#ffffff',
-                    strokeWidth: 3,
-                  }}
-                  animationDuration={650}
+                <XAxis
+                  dataKey="timestamp"
+                  type="number"
+                  scale="time"
+                  domain={['dataMin', 'dataMax']}
+                  axisLine={false}
+                  tickLine={false}
+                  minTickGap={56}
+                  tickMargin={10}
+                  tick={{ ...axisTick, fill: 'var(--color-muted)' }}
+                  tickFormatter={formatTime}
                 />
-              )}
 
-              {visibleMetrics.lux && (
-                <Area
-                  type="linear"
-                  yAxisId={metrics.lux.axis}
-                  dataKey="lux"
-                  name="lux"
-                  baseValue={0}
-                  stroke={metrics.lux.color}
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill={`url(#${metrics.lux.gradientId})`}
-                  dot={readings.length === 1}
-                  activeDot={{
-                    r: 5,
-                    fill: metrics.lux.color,
-                    stroke: '#ffffff',
-                    strokeWidth: 3,
-                  }}
-                  animationDuration={650}
+                {/* Left: temperature (°C) and humidity (%) on one 0–100 scale */}
+                <YAxis
+                  yAxisId="ambient"
+                  domain={[0, 100]}
+                  ticks={AMBIENT_TICKS}
+                  axisLine={false}
+                  tickLine={false}
+                  tickMargin={6}
+                  width={36}
+                  tick={{ ...axisTick, fill: 'var(--color-muted)' }}
                 />
-              )}
-            </ComposedChart>
-          </ResponsiveContainer>
+
+                {/* Right: light from 0 to the highest reading; independent of the left axis */}
+                <YAxis
+                  yAxisId="light"
+                  orientation="right"
+                  domain={light.domain}
+                  ticks={light.ticks}
+                  axisLine={false}
+                  tickLine={false}
+                  tickMargin={6}
+                  width={44}
+                  tick={visibleMetrics.lux ? { ...axisTick, fill: 'var(--color-light-ink)' } : false}
+                  tickFormatter={formatLux}
+                />
+
+                <Tooltip
+                  cursor={{ stroke: 'var(--color-forest)', strokeOpacity: 0.25, strokeWidth: 1.5 }}
+                  content={<TrendTooltip visibleMetrics={visibleMetrics} />}
+                />
+
+                {metricKeys.map((metric) =>
+                  visibleMetrics[metric] ? (
+                    <Area
+                      key={metric}
+                      type="monotone"
+                      yAxisId={metrics[metric].axis}
+                      dataKey={metric}
+                      name={metric}
+                      stroke={metrics[metric].color}
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill={`url(#trend-${metric})`}
+                      dot={isSinglePoint}
+                      activeDot={{ r: 5, fill: metrics[metric].color, stroke: '#ffffff', strokeWidth: 3 }}
+                      animationDuration={650}
+                    />
+                  ) : null,
+                )}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
-    </section>
+    </GlassPanel>
   )
 }

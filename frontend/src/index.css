@@ -33,10 +33,25 @@
   --color-temperature: #f06d5c;
   --color-humidity: #16b8c8;
   --color-light: #9bcf3f;
+  /* Readable text on light-tinted chips (lime itself is too pale for text) */
+  --color-light-ink: #5a8a1c;
+  --color-grid: #c9e1e1;
+
+  /* Hero scene: text and scrims over the night / day sky */
+  --color-night: #0b2a30;
+  --color-daylight: #f3fdfb;
+
+  /* Sky gradients (hero window scene day/night ends, weather card) */
+  --color-sky-day: #8fd9e6;
+  --color-sky-day-horizon: #eefbf7;
+  --color-sky-night: #0b2a33;
+  --color-sky-night-horizon: #1f4a52;
 
   /* Status colors */
   --color-success: #29b982;
   --color-warning: #e1a63b;
+
+  --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -60,5 +75,111 @@
 
   #root {
     min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ---- Motion: slow, small, and off when the user asks for less ---- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes drip {
+  0%,
+  55% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  92% {
+    opacity: 1;
+    transform: translateY(var(--drip-distance, 90px)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--drip-distance, 90px)) scale(1.3, 0.4);
+  }
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-1.2deg);
+  }
+  50% {
+    transform: rotate(1.2deg);
+  }
+}
+
+@keyframes wave {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.animate-rise-in {
+  animation: rise-in 700ms var(--ease-calm) both;
+}
+
+.animate-drip {
+  animation: drip 6s ease-in infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.animate-sway {
+  animation: sway 7s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: bottom center;
+}
+
+.animate-wave {
+  animation: wave 9s linear infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise-in,
+  .animate-drip,
+  .animate-sway,
+  .animate-wave,
+  .animate-twinkle {
+    animation: none;
+  }
+
+  .animate-drip {
+    opacity: 0;
   }
 }

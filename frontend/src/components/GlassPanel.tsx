@@ -5,7 +5,7 @@ import type { HTMLAttributes } from 'react'
  * `solid` is the normal panel; `skeleton` is the paler variant for loading states.
  */
 type GlassPanelProps = HTMLAttributes<HTMLElement> & {
-  as?: 'div' | 'section'
+  as?: 'div' | 'section' | 'article'
   variant?: 'solid' | 'skeleton'
 }
 
