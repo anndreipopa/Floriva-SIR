@@ -22,10 +22,10 @@ jobs:
       - name: Build project
         run: dotnet build backend/Licenta.API/Licenta.API.csproj --configuration Release --no-restore
 
-      - name: Install EF Core CLI
-        run: |
-          dotnet tool install --global dotnet-ef --version 10.0.10
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+      # The repo pins dotnet-ef in dotnet-tools.json (local tool). When a manifest exists,
+      # `dotnet ef` uses the local tool, so restore it instead of installing it globally.
+      - name: Restore EF Core CLI (local tool)
+        run: dotnet tool restore
 
       - name: Apply database migration
         env:
