@@ -4,6 +4,13 @@
 #include "esp_crt_bundle.h"
 #include "cJSON.h"
 #include "../../config/mqtt_config.h"
+#include <inttypes.h>
+
+/* Older copies of mqtt_config.h do not define the weight topic yet; fall back to the
+ * documented default so the (secret, gitignored) file does not have to change. */
+#ifndef MQTT_TOPIC_WEIGHT
+#define MQTT_TOPIC_WEIGHT "floriva/floriva01/weight"
+#endif
 
 static const char *TAG = "MQTT";
 static esp_mqtt_client_handle_t s_client = NULL;
@@ -70,6 +77,37 @@ esp_err_t app_mqtt_publish_sensor_data(float temp, float rh, float lux) {
     int msg_id =
         esp_mqtt_client_publish(s_client, MQTT_TOPIC_SENSORS, payload, 0, /*qos=*/1, /*retain=*/0);
     ESP_LOGI(TAG, "Published msg_id=%d payload=%s", msg_id, payload);
+
+    return (msg_id >= 0) ? ESP_OK : ESP_FAIL;
+}
+
+esp_err_t app_mqtt_publish_weight(const app_mqtt_weight_t *weight) {
+    if (!weight) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    /* s_client is NULL until app_mqtt_init() runs; the weight task may start earlier. */
+    if (!s_client || !s_connected) {
+        ESP_LOGW(TAG, "Not connected, weight reading dropped");
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    /* esp_mqtt_client_publish() is thread-safe, so the weight task and the sensor loop in
+     * app_main can both publish. */
+    char payload[160];
+    int len = snprintf(payload, sizeof(payload),
+                       "{\"pot\":%d,\"grams\":%" PRId32 ",\"raw\":%" PRId32 ",\"spread\":%" PRId32
+                       ",\"stable\":%s,\"uptimeS\":%" PRIu32 "}",
+                       weight->pot, weight->grams, weight->raw, weight->spread_raw,
+                       weight->stable ? "true" : "false", weight->uptime_s);
+
+    if (len < 0 || len >= (int)sizeof(payload)) {
+        ESP_LOGE(TAG, "Weight payload buffer too small or encoding error");
+        return ESP_FAIL;
+    }
+
+    int msg_id =
+        esp_mqtt_client_publish(s_client, MQTT_TOPIC_WEIGHT, payload, 0, /*qos=*/1, /*retain=*/0);
+    ESP_LOGI(TAG, "Published weight msg_id=%d payload=%s", msg_id, payload);
 
     return (msg_id >= 0) ? ESP_OK : ESP_FAIL;
 }

@@ -11,6 +11,7 @@
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "app_config.h"
+#include "weight_task.h"
 #include "../config/wifi_config.h"
 
 static const char *TAG = "MAIN APP";
@@ -55,6 +56,9 @@ void app_main(void) {
     };
     htu21d_handle_t sensor_htu;
     ESP_ERROR_CHECK(htu21d_init(&htu_cfg, &sensor_htu));
+
+    // Start weighing before WiFi, so the scale works (and calibrates) even without a network.
+    ESP_ERROR_CHECK(weight_task_start());
 
     // initialize WiFi
     ESP_ERROR_CHECK(wifi_init(WIFI_SSID, WIFI_PASS));
