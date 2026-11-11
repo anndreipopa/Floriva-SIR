@@ -1,5 +1,5 @@
 import type { Icon } from '@phosphor-icons/react'
-import { Plant, SlidersHorizontal, SunHorizon } from '@phosphor-icons/react'
+import { Plant, Scales, SlidersHorizontal, SunHorizon } from '@phosphor-icons/react'
 import { NavLink, Outlet } from 'react-router-dom'
 
 const navigationItem =
@@ -59,6 +59,7 @@ export function AppShell() {
 
           <nav className="flex items-center gap-1" aria-label="Primary navigation">
             <NavItem to="/environment" label="Environment" icon={SunHorizon} />
+            <NavItem to="/scale" label="Scale" icon={Scales} />
             <ComingSoon label="Plants" icon={Plant} />
             <NavItem to="/settings" label="Settings" icon={SlidersHorizontal} />
           </nav>

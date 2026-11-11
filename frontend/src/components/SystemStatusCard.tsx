@@ -78,7 +78,8 @@ export function SystemStatusCard({
   )
 }
 
-function StatusRow({
+/** One "label ……… ● STATUS" row. Also used by the Scale page's device card. */
+export function StatusRow({
   label,
   status,
   healthy,

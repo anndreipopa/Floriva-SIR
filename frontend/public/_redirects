@@ -1,0 +1,3 @@
+# Netlify: serve index.html for every path so React Router can handle /scale, /settings…
+# Without this, reloading or opening a bookmarked /scale gives Netlify's 404 page.
+/*    /index.html    200
