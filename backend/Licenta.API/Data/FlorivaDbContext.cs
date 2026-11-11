@@ -13,4 +13,12 @@ public class FlorivaDbContext : DbContext
     }
 
     public DbSet<SensorReading> SensorReadings => Set<SensorReading>();
+    public DbSet<WeightReading> WeightReadings => Set<WeightReading>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Every weight query filters by pot and a time range, so index exactly that.
+        modelBuilder.Entity<WeightReading>()
+            .HasIndex(reading => new { reading.Pot, reading.ReceivedAtUtc });
+    }
 }

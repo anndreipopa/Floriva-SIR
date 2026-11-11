@@ -10,6 +10,9 @@ public class MqttOptions
     public int Port { get; set; }
     public string Username{ get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    /// <summary>Environment readings (temperature, humidity, light).</summary>
     public string Topic { get; set; } = string.Empty;
+    /// <summary>Load-cell weighings, one message per reading.</summary>
+    public string WeightTopic { get; set; } = string.Empty;
     public bool UseTls { get; set; }
 }

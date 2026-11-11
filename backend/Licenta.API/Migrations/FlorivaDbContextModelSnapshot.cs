@@ -46,6 +46,45 @@ namespace Licenta.API.Migrations
 
                     b.ToTable("SensorReadings");
                 });
+
+            modelBuilder.Entity("Licenta.API.Models.WeightReading", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<float?>("AmbientTemperatureC")
+                        .HasColumnType("real");
+
+                    b.Property<long>("DeviceUptimeSeconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Grams")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Pot")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Raw")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ReceivedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("SpreadRaw")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Stable")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Pot", "ReceivedAtUtc");
+
+                    b.ToTable("WeightReadings");
+                });
 #pragma warning restore 612, 618
         }
     }

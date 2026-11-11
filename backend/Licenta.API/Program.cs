@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Licenta.API.Hubs;
 using Licenta.API.Services.Interfaces;
 using Licenta.API.Configuration;
+using Licenta.API.Endpoints;
 
 //Loads local .env values during development. Azure supplies the same values
 //through app service env variables.
@@ -18,6 +19,8 @@ var mqttOptions = new MqttOptions
     Username = builder.Configuration["MQTT_USERNAME"] ?? "",
     Password = builder.Configuration["MQTT_PASSWORD"] ?? "",
     Topic = builder.Configuration["MQTT_TOPIC"] ?? "",
+    //Optional: the firmware's default weight topic, so Azure needs no new setting.
+    WeightTopic = builder.Configuration["MQTT_WEIGHT_TOPIC"] ?? "floriva/floriva01/weight",
     UseTls = bool.Parse(builder.Configuration["MQTT_USE_TLS"] ?? "true")
 };
 
@@ -71,6 +74,8 @@ builder.Services.AddHttpClient<
 //FlorivaDbContext is scopes and must not be injected directly into hosted services
 builder.Services.AddSingleton(mqttOptions);
 builder.Services.AddSingleton<SensorReadingStore>();
+builder.Services.AddSingleton<IWeightUpdatePublisher, SignalRWeightUpdatePublisher>();
+builder.Services.AddSingleton<WeightReadingIngestService>();
 builder.Services.AddHostedService<MqttSubscriberService>();
 builder.Services.AddDbContext<FlorivaDbContext>(options => options.UseNpgsql(postgresConnectionString));
 builder.Services.AddHostedService<SensorReadingPersistenceService>();
@@ -104,6 +109,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
 app.MapHub<EnvironmentHub>("/hubs/environment");
+app.MapHub<ScaleHub>("/hubs/scale");
+app.MapWeightEndpoints();
 
 app.MapGet(
     "/api/weather",
