@@ -6,3 +6,7 @@
 # CONFIG_IDF_TARGET="esp32s3"
 
 # Add your custom configurations here
+# Real flash chip size, measured with esptool flash_id (2026-11-20)
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+# 1.5 MB app partition: the 1 MB default was 95 % full. No OTA yet (QoL, later).
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
