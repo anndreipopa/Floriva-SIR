@@ -33,8 +33,11 @@
 #define HX711_POT1_SCK_GPIO 25
 /* Pot number sent to the backend with each weighing (pots are numbered 1..3). */
 #define WEIGHT_POT1_NUMBER 1
-/* Key under which pot 1's calibration is saved in NVS (max 15 characters). */
-#define WEIGHT_POT1_NVS_KEY "pot1"
+/* Key under which pot 1's calibration is saved in NVS (max 15 characters).
+ * To recalibrate from scratch with a single flash: change the suffix (cal2 -> cal3).
+ * The new key is empty, so the next boot runs the first-boot tare + calibration; later
+ * boots find it and do not re-tare. (Old entries stay in NVS; they are a few bytes.) */
+#define WEIGHT_POT1_NVS_KEY "pot1_cal3"
 
 /* --- Weighing schedule --- */
 /* One weighing every 5 minutes while testing noise and creep. Planned: 7200 (2 h) later. */
@@ -42,7 +45,7 @@
 /* Wait after power-up before the tare or the first reading, so the load cell, the HX711 and
  * the regulator reach a steady temperature. STARTING VALUE, NOT MEASURED: the drift test will
  * show how long the readings really take to settle. Lower it (e.g. 10) while debugging. */
-#define WEIGHT_WARMUP_S 300
+#define WEIGHT_WARMUP_S 60
 
 /* --- Calibration (runs only when nothing is saved in NVS, or when forced) --- */
 /* Mass of your reference item in grams. Weigh it on a trusted kitchen scale and put the number
