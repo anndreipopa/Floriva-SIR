@@ -6,10 +6,14 @@
 #include "../../config/mqtt_config.h"
 #include <inttypes.h>
 
-/* Older copies of mqtt_config.h do not define the weight topic yet; fall back to the
+/* Older copies of mqtt_config.h do not define the topics yet; fall back to the
  * documented default so the (secret, gitignored) file does not have to change. */
 #ifndef MQTT_TOPIC_WEIGHT
 #define MQTT_TOPIC_WEIGHT "floriva/floriva01/weight"
+#endif
+
+#ifndef MQTT_TOPIC_CMD
+#define MQTT_TOPIC_CMD "floriva/floriva01/cmd"
 #endif
 
 static const char *TAG = "MQTT";
@@ -20,10 +24,32 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                                void *event_data) {
     esp_mqtt_event_handle_t event = event_data;
     switch (event->event_id) {
-    case MQTT_EVENT_CONNECTED:
+    case MQTT_EVENT_CONNECTED: {
         s_connected = true;
         ESP_LOGI(TAG, "Connected to MQTT broker");
+
+        // Subscribe on EVERY connect, with a clean session the broker forgets
+        // our subscriptions when we disconnect.
+
+        int sub_id = esp_mqtt_client_subscribe_single(event->client, MQTT_TOPIC_CMD, /*qos=*/1);
+
+        if (sub_id < 0) {
+            ESP_LOGE(TAG, "Subscribe to %s failed", MQTT_TOPIC_CMD);
+        } else {
+            ESP_LOGI(TAG, "Subscribing to %s (msg_id=%d)", MQTT_TOPIC_CMD, sub_id);
+        }
+
         break;
+    }
+
+    case MQTT_EVENT_SUBSCRIBED:
+        ESP_LOGI(TAG, "Subscribed to %s (msg_id = %d)", MQTT_TOPIC_CMD, event->msg_id);
+        break;
+
+    case MQTT_EVENT_DATA:
+        ESP_LOGI(TAG, "Received message on %.*s : %.*s", event->topic_len, event->topic, event->data_len, event->data);
+        break;
+
     case MQTT_EVENT_DISCONNECTED:
         s_connected = false;
         ESP_LOGW(TAG, "Disconnected from MQTT broker");
