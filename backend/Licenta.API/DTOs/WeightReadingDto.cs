@@ -14,7 +14,8 @@ public sealed record WeightReadingDto(
     int SpreadRaw,
     bool Stable,
     long DeviceUptimeSeconds,
-    float? AmbientTemperatureC)
+    float? AmbientTemperatureC,
+    string? SessionId)
 {
     public static WeightReadingDto FromEntity(WeightReading reading) => new(
         reading.Id,
@@ -25,5 +26,6 @@ public sealed record WeightReadingDto(
         reading.SpreadRaw,
         reading.Stable,
         reading.DeviceUptimeSeconds,
-        reading.AmbientTemperatureC);
+        reading.AmbientTemperatureC,
+        reading.SessionId);
 }

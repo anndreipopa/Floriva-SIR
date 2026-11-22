@@ -123,6 +123,13 @@ public sealed class WeightReadingIngestService
             return null;
         }
 
+        // Null = normal reading. Otherwise it must look like an id the backend generated.
+        if (message.Session is { } session && !IsValidSessionId(session))
+        {
+            _logger.LogWarning("Weight payload has an invalid session id: {Payload}", payload);
+            return null;
+        }
+
         var receivedAtUtc = DateTime.UtcNow;
 
         return new WeightReading
@@ -135,8 +142,14 @@ public sealed class WeightReadingIngestService
             Stable = stable,
             DeviceUptimeSeconds = uptime,
             AmbientTemperatureC = RecentAmbientTemperature(receivedAtUtc),
+            SessionId = message.Session,
         };
     }
+
+    /// <summary>Same rule as the firmware: 1..36 characters, letters, digits, '-' and '_'.</summary>
+    public static bool IsValidSessionId(string id) =>
+        id.Length is > 0 and <= FlorivaDbContext.SessionIdMaxLength &&
+        id.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_');
 
     private float? RecentAmbientTemperature(DateTime nowUtc)
     {

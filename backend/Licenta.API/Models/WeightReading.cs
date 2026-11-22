@@ -34,4 +34,10 @@ public class WeightReading
     /// Stored next to the weight so temperature drift can be analysed later.
     /// </summary>
     public float? AmbientTemperatureC { get; set; }
+
+    /// <summary>
+    /// Calibration session id for the fast (~4 s) readings streamed during a calibration;
+    /// null for normal readings. Lets analysis filter the ~1000 session rows out.
+    /// </summary>
+    public string? SessionId { get; set; }
 }

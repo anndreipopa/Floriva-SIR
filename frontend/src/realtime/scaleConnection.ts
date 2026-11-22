@@ -4,6 +4,9 @@ import { apiBaseUrl } from '../api/apiBaseUrl'
 /** Name of the server event carrying one new weighing (see SignalRWeightUpdatePublisher.cs). */
 export const WEIGHT_READING_EVENT = 'WeightReadingReceived'
 
+/** Name of the server event carrying a pot's new calibration state (SignalRCalibrationUpdatePublisher.cs). */
+export const CALIBRATION_UPDATED_EVENT = 'CalibrationUpdated'
+
 /**
  * SignalR connection for live weight readings. One per mounted Scale page.
  * Same reconnect schedule as the environment connection.

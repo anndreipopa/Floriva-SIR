@@ -16,4 +16,6 @@ export interface WeightReading {
   deviceUptimeSeconds: number
   /** Room temperature at that moment, if a recent environment reading existed. */
   ambientTemperatureC: number | null
+  /** Calibration session id for the fast readings streamed during a calibration; null otherwise. */
+  sessionId: string | null
 }

@@ -1,6 +1,30 @@
-@Licenta.API_HostAddress = http://localhost:5069
+﻿@host = http://localhost:5069
+@pot = 1
 
-GET {{Licenta.API_HostAddress}}/weatherforecast/
+### Latest weight of the pot (normal or session reading)
+GET {{host}}/api/weight/latest?pot={{pot}}
 Accept: application/json
 
-###
+### ===== User calibration session (docs/pipeline/calibration-session.md) =====
+### Run these in order. Each answers with the calibration state; a refused step answers
+### 409 Conflict with a "message" saying why.
+
+### 0. Current calibration (+ session in progress, if any)
+GET {{host}}/api/calibration/{{pot}}
+Accept: application/json
+
+### 1. Start: sends calibration_start. The robot counts down 30 s (lift the pot off!),
+###    tares, then streams a reading every ~4 s. Poll step 0 until phase = awaiting_dry.
+POST {{host}}/api/calibration/{{pot}}/start
+
+### 2. Place the dry pot, hands off, wait ~5 s, then save the dry point.
+POST {{host}}/api/calibration/{{pot}}/dry
+
+### 3. Water as you normally do, then press "Done watering" (starts the drain timer).
+POST {{host}}/api/calibration/{{pot}}/watered
+
+### 4. After CALIBRATION_DRAIN_MINUTES (30 by default), save the wet point. Ends the session.
+POST {{host}}/api/calibration/{{pot}}/wet
+
+### Abandon the session at any step (the previous calibration is kept)
+POST {{host}}/api/calibration/{{pot}}/cancel

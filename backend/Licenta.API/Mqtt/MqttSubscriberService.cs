@@ -12,9 +12,10 @@ namespace Licenta.API.Mqtt;
 
 /// <summary>
 /// Keeps one MQTT connection alive (reconnecting with backoff if the broker drops it),
-/// subscribes to the environment and weight topics, and routes each message by topic:
+/// subscribes to the environment, weight and status topics, and routes each message by topic:
 /// environment readings go to the in-memory store + SignalR, weight readings go to
-/// <see cref="WeightReadingIngestService"/>.
+/// <see cref="WeightReadingIngestService"/>, device status goes to <see cref="CalibrationService"/>.
+/// The same connection is lent to <see cref="MqttPublisher"/> for sending commands.
 /// </summary>
 public class MqttSubscriberService : BackgroundService
 {
@@ -34,6 +35,8 @@ public class MqttSubscriberService : BackgroundService
     private readonly SensorReadingStore _store;
     private readonly IEnvironmentUpdatePublisher _updatePublisher;
     private readonly WeightReadingIngestService _weightIngest;
+    private readonly CalibrationService _calibration;
+    private readonly MqttPublisher _publisher;
     private readonly ILogger<MqttSubscriberService> _logger;
 
     public MqttSubscriberService(
@@ -41,25 +44,31 @@ public class MqttSubscriberService : BackgroundService
         SensorReadingStore store,
         IEnvironmentUpdatePublisher updatePublisher,
         WeightReadingIngestService weightIngest,
+        CalibrationService calibration,
+        MqttPublisher publisher,
         ILogger<MqttSubscriberService> logger)
     {
         _options = options;
         _store = store;
         _updatePublisher = updatePublisher;
         _weightIngest = weightIngest;
+        _calibration = calibration;
+        _publisher = publisher;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
-            "MQTT subscriber starting for topics {Topic} and {WeightTopic}",
+            "MQTT subscriber starting for topics {Topic}, {WeightTopic} and {StatusTopic}",
             _options.Topic,
-            _options.WeightTopic);
+            _options.WeightTopic,
+            _options.StatusTopic);
 
         var factory = new MqttClientFactory();
         using var client = factory.CreateMqttClient();
         var clientOptions = BuildClientOptions();
+        _publisher.Attach(client);
 
         client.ApplicationMessageReceivedAsync += e => HandleMessageAsync(e, stoppingToken);
 
@@ -140,10 +149,12 @@ public class MqttSubscriberService : BackgroundService
         _logger.LogInformation("Connected to HiveMQ");
 
         // A new connection starts with no subscriptions (clean session), so subscribe every time.
-        foreach (var topic in new[] { _options.Topic, _options.WeightTopic })
+        // QoS 1 on our side too: the broker delivers with the LOWER of publisher and subscriber
+        // QoS, so subscribing at QoS 0 would silently downgrade the ESP32's QoS 1 messages.
+        foreach (var topic in new[] { _options.Topic, _options.WeightTopic, _options.StatusTopic })
         {
             await client.SubscribeAsync(
-                new MqttTopicFilterBuilder().WithTopic(topic).Build(),
+                new MqttTopicFilterBuilder().WithTopic(topic).WithAtLeastOnceQoS().Build(),
                 stoppingToken);
             _logger.LogInformation("Subscribed to MQTT topic {Topic}", topic);
         }
@@ -177,6 +188,10 @@ public class MqttSubscriberService : BackgroundService
             if (topic == _options.WeightTopic)
             {
                 await _weightIngest.HandlePayloadAsync(payload, stoppingToken);
+            }
+            else if (topic == _options.StatusTopic)
+            {
+                await _calibration.HandleStatusAsync(payload, stoppingToken);
             }
             else if (topic == _options.Topic)
             {

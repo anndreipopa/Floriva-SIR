@@ -40,12 +40,30 @@
 #define WEIGHT_POT1_NVS_KEY "pot1_cal3"
 
 /* --- Weighing schedule --- */
-/* One weighing every 5 minutes while testing noise and creep. Planned: 7200 (2 h) later. */
-#define WEIGHT_PERIOD_S 300
+/* One normal weighing every 2 hours (design D6). Soil dries over days, so 2 h is plenty, and
+ * calibration has its own fast stream. The 5 min period was only for the drift test.
+ * MUST match WEIGHT_PERIOD_MS in frontend/src/lib/weight.ts. */
+#define WEIGHT_PERIOD_S 7200
 /* Wait after power-up before the tare or the first reading, so the load cell, the HX711 and
  * the regulator reach a steady temperature. STARTING VALUE, NOT MEASURED: the drift test will
  * show how long the readings really take to settle. Lower it (e.g. 10) while debugging. */
 #define WEIGHT_WARMUP_S 60
+
+/* --- User calibration session (cmd calibration_start ... calibration_end) --- */
+/* Countdown before the session tare. The electronics are already warm; this is time for the
+ * user to lift the pot off the scale and let go. Reported as "warming_up" + secondsLeft. */
+#define WEIGHT_SESSION_PREPARE_S 30
+/* How often the countdown is re-published, so the dashboard can show seconds left. */
+#define WEIGHT_SESSION_STATUS_EVERY_S 5
+/* Streaming rhythm: one reading every 4 s. A reading itself takes ~3 s (32 samples at 10 SPS),
+ * so this is about as fast as the HX711 allows. */
+#define WEIGHT_SESSION_STREAM_PERIOD_MS 4000
+/* Safety net: back to idle on its own if calibration_end never comes (browser closed, WiFi
+ * lost). 90 min > the 30 min drain wait, on purpose (design D3). */
+#define WEIGHT_SESSION_TIMEOUT_S (90 * 60)
+/* Depth of the command queue between the MQTT task and the weight task. Commands are rare
+ * (a few per session); 4 absorbs a burst of QoS 1 repeats. */
+#define WEIGHT_CMD_QUEUE_LEN 4
 
 /* --- Calibration (runs only when nothing is saved in NVS, or when forced) --- */
 /* Mass of your reference item in grams. Weigh it on a trusted kitchen scale and put the number

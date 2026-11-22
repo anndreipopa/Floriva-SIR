@@ -1,10 +1,10 @@
 import type { WeightReading } from '../types/weight'
 
 /**
- * How often the ESP32 weighs. MUST match WEIGHT_PERIOD_S in firmware/main/app_config.h
- * (300 s while testing, 7200 s later).
+ * How often the ESP32 weighs normally. MUST match WEIGHT_PERIOD_S in
+ * firmware/main/app_config.h (7200 s = 2 h since the calibration session; 300 s before).
  */
-export const WEIGHT_PERIOD_MS = 5 * 60_000
+export const WEIGHT_PERIOD_MS = 2 * 60 * 60_000
 
 /** A reading is "fresh" until two and a half periods have passed (one miss is tolerated). */
 export const WEIGHT_STALE_AFTER_MS = 2.5 * WEIGHT_PERIOD_MS

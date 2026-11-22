@@ -14,5 +14,9 @@ public class MqttOptions
     public string Topic { get; set; } = string.Empty;
     /// <summary>Load-cell weighings, one message per reading.</summary>
     public string WeightTopic { get; set; } = string.Empty;
+    /// <summary>Backend → ESP32 commands (calibration_start / calibration_end). Never retained.</summary>
+    public string CommandTopic { get; set; } = string.Empty;
+    /// <summary>ESP32 → backend device state; also acknowledges commands.</summary>
+    public string StatusTopic { get; set; } = string.Empty;
     public bool UseTls { get; set; }
 }

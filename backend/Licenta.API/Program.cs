@@ -21,8 +21,21 @@ var mqttOptions = new MqttOptions
     Topic = builder.Configuration["MQTT_TOPIC"] ?? "",
     //Optional: the firmware's default weight topic, so Azure needs no new setting.
     WeightTopic = builder.Configuration["MQTT_WEIGHT_TOPIC"] ?? "floriva/floriva01/weight",
+    //Optional, firmware defaults: commands to the robot and its status (calibration session).
+    CommandTopic = builder.Configuration["MQTT_COMMAND_TOPIC"] ?? "floriva/floriva01/cmd",
+    StatusTopic = builder.Configuration["MQTT_STATUS_TOPIC"] ?? "floriva/floriva01/status",
     UseTls = bool.Parse(builder.Configuration["MQTT_USE_TLS"] ?? "true")
 };
+
+var calibrationOptions = new CalibrationOptions
+{
+    DrainMinutes = int.Parse(builder.Configuration["CALIBRATION_DRAIN_MINUTES"] ?? "30"),
+};
+
+if (calibrationOptions.DrainMinutes < 0)
+{
+    throw new InvalidOperationException("CALIBRATION_DRAIN_MINUTES must be 0 or more.");
+}
 
 var weatherOptions = new OpenWeatherMapOptions
 {
@@ -76,6 +89,13 @@ builder.Services.AddSingleton(mqttOptions);
 builder.Services.AddSingleton<SensorReadingStore>();
 builder.Services.AddSingleton<IWeightUpdatePublisher, SignalRWeightUpdatePublisher>();
 builder.Services.AddSingleton<WeightReadingIngestService>();
+//One MQTT connection: the subscriber owns it and lends it to the publisher (commands).
+//Both registrations resolve to the SAME instance, so Attach() reaches the one used for publishing.
+builder.Services.AddSingleton<MqttPublisher>();
+builder.Services.AddSingleton<IMqttPublisher>(services => services.GetRequiredService<MqttPublisher>());
+builder.Services.AddSingleton(calibrationOptions);
+builder.Services.AddSingleton<ICalibrationUpdatePublisher, SignalRCalibrationUpdatePublisher>();
+builder.Services.AddSingleton<CalibrationService>();
 builder.Services.AddHostedService<MqttSubscriberService>();
 builder.Services.AddDbContext<FlorivaDbContext>(options => options.UseNpgsql(postgresConnectionString));
 builder.Services.AddHostedService<SensorReadingPersistenceService>();
@@ -111,6 +131,7 @@ app.UseCors("Frontend");
 app.MapHub<EnvironmentHub>("/hubs/environment");
 app.MapHub<ScaleHub>("/hubs/scale");
 app.MapWeightEndpoints();
+app.MapCalibrationEndpoints();
 
 app.MapGet(
     "/api/weather",

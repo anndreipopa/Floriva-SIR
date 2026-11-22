@@ -2,9 +2,10 @@ namespace Licenta.API.DTOs;
 
 /// <summary>
 /// Shape of the JSON the ESP32 publishes on the weight topic, e.g.
-/// {"pot":1,"grams":682,"raw":379204,"spread":702,"stable":true,"uptimeS":12345}.
+/// {"pot":1,"grams":682,"raw":379204,"spread":702,"stable":true,"uptimeS":12345,"session":null}.
 /// Every field is nullable so a missing field can be detected and rejected instead of
-/// silently becoming 0.
+/// silently becoming 0. <c>Session</c> is legitimately null for normal readings (and missing
+/// in messages from older firmware).
 /// </summary>
 public sealed record WeightMqttPayload(
     int? Pot,
@@ -12,4 +13,5 @@ public sealed record WeightMqttPayload(
     int? Raw,
     int? Spread,
     bool? Stable,
-    long? UptimeS);
+    long? UptimeS,
+    string? Session);

@@ -25,21 +25,6 @@ function NavItem({ to, label, icon: ItemIcon }: { to: string; label: string; ico
   )
 }
 
-function ComingSoon({ label, icon: ItemIcon }: { label: string; icon: Icon }) {
-  return (
-    <span
-      className={`${navigationItem} cursor-default text-muted/70`}
-      aria-label={`${label} (coming soon)`}
-    >
-      <ItemIcon size={20} weight="bold" aria-hidden="true" />
-      <span className="hidden sm:inline">{label}</span>
-      <span className="hidden rounded-md bg-mint-soft px-1.5 py-px text-[10px] font-extrabold uppercase tracking-wide text-forest md:inline">
-        soon
-      </span>
-    </span>
-  )
-}
-
 /**
  * Top bar + page area. On desktop the page area is exactly one screen tall
  * (minus the bar) so the dashboard never scrolls; very short windows fall
@@ -60,7 +45,7 @@ export function AppShell() {
           <nav className="flex items-center gap-1" aria-label="Primary navigation">
             <NavItem to="/environment" label="Environment" icon={SunHorizon} />
             <NavItem to="/scale" label="Scale" icon={Scales} />
-            <ComingSoon label="Plants" icon={Plant} />
+            <NavItem to="/plants" label="Plants" icon={Plant} />
             <NavItem to="/settings" label="Settings" icon={SlidersHorizontal} />
           </nav>
         </div>

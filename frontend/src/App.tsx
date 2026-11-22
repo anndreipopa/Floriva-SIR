@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
 import { EnvironmentPage } from './pages/EnvironmentPage'
+import { PlantsPage } from './pages/PlantsPage'
 import { ScalePage } from './pages/ScalePage'
 import { SettingsPage } from './pages/SettingsPage'
 
@@ -20,6 +21,7 @@ function App() {
           />
           <Route path="/environment" element={<EnvironmentPage />} />
           <Route path="/scale" element={<ScalePage />} />
+          <Route path="/plants" element={<PlantsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

@@ -22,6 +22,59 @@ namespace Licenta.API.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Licenta.API.Models.PotCalibration", b =>
+                {
+                    b.Property<int>("Pot")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("CalibratedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeviceSecondsLeft")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeviceState")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("DeviceStatusAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DrainStartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DryGrams")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("SessionDryAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("SessionDryGrams")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SessionError")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<string>("SessionPhase")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("SessionStartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("WetGrams")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Pot");
+
+                    b.ToTable("PotCalibrations");
+                });
+
             modelBuilder.Entity("Licenta.API.Models.SensorReading", b =>
                 {
                     b.Property<int>("Id")
@@ -73,6 +126,10 @@ namespace Licenta.API.Migrations
                     b.Property<DateTime>("ReceivedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<int>("SpreadRaw")
                         .HasColumnType("integer");
 
@@ -80,6 +137,8 @@ namespace Licenta.API.Migrations
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
 
                     b.HasIndex("Pot", "ReceivedAtUtc");
 
